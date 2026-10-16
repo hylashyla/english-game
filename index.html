@@ -1,0 +1,2384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+<title>🔤 英语单词气球 · 情绪感受篇</title>
+<style>
+  :root {
+    --sky-top: #87CEEB;
+    --sky-bottom: #E8D5F5;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 100vw; height: 100vh; overflow: hidden;
+    font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: linear-gradient(180deg, #87CEEB 0%, #B8E4F0 40%, #E8D5F5 70%, #FFF5E6 100%);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  canvas {
+    display: block; position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  #ui-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 10;
+  }
+  #title-area {
+    position: absolute; top: 3vh; width: 100%; text-align: center;
+  }
+  .banner {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6B6B);
+    background-size: 400% 400%;
+    animation: bannerShift 3s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  }
+  @keyframes bannerShift {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .subtitle {
+    font-size: clamp(0.8rem, 2vw, 1.1rem);
+    color: #FF6B6B;
+    font-weight: 700;
+    margin-top: 0.3em;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+  }
+  /* 主题入口按钮（只占一个小位置，不挤压游戏区） */
+  .theme-entry {
+    margin-top: 1vh;
+    padding: 7px 16px;
+    font-size: clamp(0.8rem, 2.2vw, 1rem);
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #FF9A3D, #FF6B6B);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(255,107,107,0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    pointer-events: auto;
+  }
+  .theme-entry:active { transform: scale(0.94); }
+  .theme-arrow { font-size: 0.85em; opacity: 0.9; }
+
+  /* 顶部按钮行：主题 + 发音口音 */
+  .controls-row {
+    margin-top: 1vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .controls-row .theme-entry { margin-top: 0; }
+  /* 口音切换按钮 */
+  .accent-entry {
+    padding: 7px 16px;
+    font-size: clamp(0.8rem, 2.2vw, 1rem);
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #4D96FF, #7B6BFF);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(77,150,255,0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    pointer-events: auto;
+  }
+  .accent-entry:active { transform: scale(0.94); }
+
+  /* 主题选择抽屉面板 */
+  #theme-panel-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.5);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 30;
+  }
+  #theme-panel-overlay.active {
+    opacity: 1; pointer-events: auto;
+  }
+  .theme-panel {
+    background: linear-gradient(160deg, #FFFFFF 0%, #FFF7EC 100%);
+    border-radius: 26px;
+    padding: 3vh 5vw;
+    width: min(92vw, 560px);
+    max-height: 82vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.25s ease;
+  }
+  #theme-panel-overlay.active .theme-panel { transform: scale(1); }
+  .theme-panel-title {
+    font-size: clamp(1rem, 3vw, 1.35rem);
+    font-weight: 900;
+    color: #FF6B6B;
+    margin-bottom: 2vh;
+  }
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 520px) {
+    .theme-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .theme-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px 6px;
+    border: 2.5px solid transparent;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.85);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    transition: all 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .theme-cell:active { transform: scale(0.94); }
+  .theme-cell.active {
+    background: linear-gradient(135deg, #FF9A3D, #FF6B6B);
+    border-color: #FF8E72;
+    box-shadow: 0 5px 15px rgba(255,107,107,0.35);
+  }
+  .theme-cell-emoji { font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1; }
+  .theme-cell-name {
+    font-size: clamp(0.7rem, 2vw, 0.85rem);
+    font-weight: 800;
+    color: #5A6B80;
+  }
+  .theme-cell.active .theme-cell-name { color: #fff; }
+  .theme-cell-count {
+    font-size: 0.62rem;
+    color: #9AA8B8;
+    font-weight: 600;
+  }
+  .theme-cell.active .theme-cell-count { color: rgba(255,255,255,0.85); }
+  .theme-close {
+    margin-top: 2.2vh;
+    padding: 10px 34px;
+    font-size: clamp(0.85rem, 2.4vw, 1rem);
+    font-weight: 800;
+    color: #7A8CA6;
+    background: #F0F3F7;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #score-area {
+    position: absolute; top: 14vh; right: 4vw;
+    pointer-events: auto;
+  }
+  .score-box {
+    background: rgba(255,255,255,0.85);
+    border-radius: 20px;
+    padding: 8px 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    cursor: default;
+  }
+  .score-label { font-size: 0.7rem; color: #999; font-weight: 600; }
+  .score-num { font-size: 1.8rem; font-weight: 900; color: #FF6B6B; line-height: 1.2; }
+  #hint-area {
+    position: absolute; bottom: 8vh; width: 100%; text-align: center;
+  }
+  .hint-text {
+    display: inline-block;
+    background: rgba(255,255,255,0.7);
+    border-radius: 25px;
+    padding: 8px 22px;
+    font-size: 0.85rem;
+    color: #FF6B6B;
+    font-weight: 700;
+    animation: hintPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes hintPulse {
+    0%,100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+  #celebration-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; transition: opacity 0.5s;
+    z-index: 20;
+  }
+  #celebration-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  #celebration-overlay .overlay-bg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 0;
+  }
+  .word-card {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(160deg, #FFFFFF 0%, #FFF7EC 100%);
+    border-radius: 28px;
+    padding: 3vh 8vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 6px rgba(255,255,255,0.25);
+    text-align: center;
+    animation: celebBounce 0.5s ease-out;
+    max-width: 88vw;
+  }
+  .word-emoji {
+    font-size: clamp(3.5rem, 10vw, 5.5rem);
+    line-height: 1;
+    margin-bottom: 0.5vh;
+  }
+  /* 卡片图案为图片时，按当前字号等比显示 */
+  .word-emoji img { width: 1em; height: 1em; display: block; margin: 0 auto; }
+  .word-english {
+    font-size: clamp(2rem, 7vw, 3.6rem);
+    font-weight: 900;
+    color: #FF6B6B;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 0 rgba(0,0,0,0.05);
+  }
+  .word-phonetic {
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: #7A8CA6;
+    font-weight: 600;
+    margin-top: 0.4vh;
+  }
+  .word-chinese {
+    font-size: clamp(1.1rem, 3.5vw, 1.7rem);
+    color: #4D96FF;
+    font-weight: 800;
+    margin-top: 0.8vh;
+  }
+  .word-replay {
+    margin-top: 1.8vh;
+    padding: 1.4vh 5vw;
+    font-size: clamp(0.95rem, 2.8vw, 1.15rem);
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #FF9A3D, #FF6B6B);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(255,107,107,0.4);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .word-replay:active {
+    transform: scale(0.93);
+    box-shadow: 0 3px 10px rgba(255,107,107,0.35);
+  }
+  .celebration-dismiss {
+    font-size: clamp(0.75rem, 2vw, 0.95rem);
+    color: rgba(255,255,255,0.7);
+    margin-top: 2vh;
+    animation: hintPulse 1.5s ease-in-out infinite;
+    z-index: 1;
+    opacity: 0;
+  }
+  @keyframes celebBounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  /* 粒子层的CSS粒子用于背景装饰 */
+  .bg-particle {
+    position: absolute; border-radius: 50%;
+    pointer-events: none; z-index: 1;
+    animation: floatUp linear forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="ui-layer">
+  <div id="title-area">
+    <div class="banner">🔤 英语单词气球</div>
+    <div class="subtitle" id="child-name">情绪感受篇 · 戳破气球学单词</div>
+    <div class="controls-row">
+      <button class="theme-entry" id="theme-entry">
+        <span id="theme-entry-emoji">😊</span>
+        <span id="theme-entry-name">切换主题</span>
+        <span class="theme-arrow">▾</span>
+      </button>
+      <button class="accent-entry" id="accent-entry" title="切换英式 / 美式发音">
+        <span id="accent-flag">🇺🇸</span>
+        <span id="accent-name">美式发音</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 主题选择抽屉面板 -->
+  <div id="theme-panel-overlay">
+    <div class="theme-panel">
+      <div class="theme-panel-title">🎨 选择学习主题</div>
+      <div class="theme-grid" id="theme-grid"></div>
+      <button class="theme-close" id="theme-close">关闭</button>
+    </div>
+  </div>
+  <div id="score-area">
+    <div class="score-box">
+      <div class="score-label">📚 已学单词</div>
+      <div class="score-num" id="score-display">0</div>
+    </div>
+  </div>
+  <div id="hint-area">
+    <div class="hint-text">👆 点一下气球，学习英语单词～</div>
+  </div>
+  <div id="celebration-overlay">
+    <div class="overlay-bg"></div>
+    <div class="word-card">
+      <div class="word-emoji" id="word-emoji">😊</div>
+      <div class="word-english" id="word-english">happy</div>
+      <div class="word-phonetic" id="word-phonetic">/ˈhæpi/</div>
+      <div class="word-chinese" id="word-chinese">开心的</div>
+      <button class="word-replay" id="word-replay">🔊 再读一遍</button>
+    </div>
+    <div class="celebration-dismiss">👆 点击屏幕继续游戏</div>
+  </div>
+</div>
+
+<!-- iconfont symbol 图标源（异步加载，不阻塞游戏；加载失败自动回退 emoji） -->
+<script src="https://at.alicdn.com/t/c/font_5243893_877semdsolf.js" async
+        onload="window.__onIconfontReady && window.__onIconfontReady()"></script>
+
+<script>
+// ============ Canvas roundRect Polyfill ============
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+    this.moveTo(x + r.tl, y);
+    this.lineTo(x + w - r.tr, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+    this.lineTo(x + w, y + h - r.br);
+    this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+    this.lineTo(x + r.bl, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+    this.lineTo(x, y + r.tl);
+    this.quadraticCurveTo(x, y, x + r.tl, y);
+  };
+}
+
+// 单词主题（word 英文 / phonetic 音标 / cn 中文 / emoji 表情）
+const THEMES = {
+  emotion: {
+    name: '情绪感受篇',
+    emoji: '😊',
+    words: [
+      { word: 'happy',   phonetic: '/ˈhæpi/',    cn: '开心的',  emoji: '😊', uk: '/ˈhæpi/' },
+      { word: 'sad',     phonetic: '/sæd/',      cn: '难过的',  emoji: '😞', uk: '/sæd/' },
+      { word: 'cold',    phonetic: '/koʊld/',    cn: '冷的',    emoji: '🥶', uk: '/kəʊld/' },
+      { word: 'hot',     phonetic: '/hɑːt/',     cn: '热的',    emoji: '🥵', uk: '/hɒt/' },
+      { word: 'angry',   phonetic: '/ˈæŋɡri/',   cn: '生气的',  emoji: '😠', uk: '/ˈæŋɡri/' },
+      { word: 'hungry',  phonetic: '/ˈhʌŋɡri/',  cn: '饿的',    emoji: '😋', uk: '/ˈhʌŋɡri/' },
+      { word: 'tired',   phonetic: '/ˈtaɪərd/',  cn: '累的',    emoji: '😩', uk: '/ˈtaɪəd/' },
+      { word: 'scared',  phonetic: '/skerd/',    cn: '害怕的',  emoji: '😨', uk: '/skeəd/' },
+      { word: 'excited', phonetic: '/ɪkˈsaɪtɪd/', cn: '兴奋的', emoji: '🤩', uk: '/ɪkˈsaɪtɪd/' },
+      { word: 'sleepy',  phonetic: '/ˈsliːpi/',  cn: '困的',    emoji: '😴', uk: '/ˈsliːpi/' },
+      { word: 'love',    phonetic: '/lʌv/',      cn: '爱',      emoji: '❤️', uk: '/lʌv/' },
+      { word: 'cry',     phonetic: '/kraɪ/',     cn: '哭',      emoji: '😭', uk: '/kraɪ/' },
+      { word: 'smile',   phonetic: '/smaɪl/',    cn: '微笑',    emoji: '🙂', uk: '/smaɪl/' },
+      { word: 'laugh',   phonetic: '/læf/',      cn: '笑',      emoji: '😂', uk: '/lɑːf/' },
+      { word: 'sick',    phonetic: '/sɪk/',      cn: '生病的',  emoji: '🤒', uk: '/sɪk/' },
+      { word: 'thirsty', phonetic: '/ˈθɜːrsti/', cn: '渴的',    emoji: '🥤', uk: '/ˈθɜːsti/' },
+      { word: 'surprised', phonetic: '/sərˈpraɪzd/', cn: '惊讶的', emoji: '😲', uk: '/səˈpraɪzd/' },
+      { word: 'shy',     phonetic: '/ʃaɪ/',      cn: '害羞的',  emoji: '😳', uk: '/ʃaɪ/' },
+      { word: 'proud',   phonetic: '/praʊd/',    cn: '骄傲的',  emoji: '😎', uk: '/praʊd/' },
+      { word: 'full',    phonetic: '/fʊl/',      cn: '饱的',    emoji: '😌', uk: '/fʊl/' },
+    ],
+  },
+  body: {
+    name: '身体部位篇',
+    emoji: '🖐️',
+    words: [
+      { word: 'head',    phonetic: '/hed/',      cn: '头',      emoji: '👤', uk: '/hed/' },
+      { word: 'hair',    phonetic: '/her/',      cn: '头发',    emoji: '💇', uk: '/heə/' },
+      { word: 'eye',     phonetic: '/aɪ/',       cn: '眼睛',    emoji: '👁️', uk: '/aɪ/' },
+      { word: 'ear',     phonetic: '/ɪr/',       cn: '耳朵',    emoji: '👂', uk: '/ɪə/' },
+      { word: 'nose',    phonetic: '/noʊz/',     cn: '鼻子',    emoji: '👃', uk: '/nəʊz/' },
+      { word: 'mouth',   phonetic: '/maʊθ/',     cn: '嘴巴',    emoji: '👄', uk: '/maʊθ/' },
+      { word: 'tooth',   phonetic: '/tuːθ/',     cn: '牙齿',    emoji: '🦷', uk: '/tuːθ/' },
+      { word: 'tongue',  phonetic: '/tʌŋ/',      cn: '舌头',    emoji: '👅', uk: '/tʌŋ/' },
+      { word: 'face',    phonetic: '/feɪs/',     cn: '脸',      emoji: '😀', uk: '/feɪs/' },
+      { word: 'chin',    phonetic: '/tʃɪn/',     cn: '下巴',    emoji: '🧔', uk: '/tʃɪn/' },
+      { word: 'neck',    phonetic: '/nek/',      cn: '脖子',    emoji: '🧣', uk: '/nek/' },
+      { word: 'shoulder', phonetic: '/ˈʃoʊldər/', cn: '肩膀',   emoji: '🤷', uk: '/ˈʃəʊldə/' },
+      { word: 'arm',     phonetic: '/ɑːrm/',     cn: '手臂',    emoji: '💪', uk: '/ɑːm/' },
+      { word: 'hand',    phonetic: '/hænd/',     cn: '手',      emoji: '✋', uk: '/hænd/' },
+      { word: 'finger',  phonetic: '/ˈfɪŋɡər/',  cn: '手指',    emoji: '👆', uk: '/ˈfɪŋɡə/' },
+      { word: 'belly',   phonetic: '/ˈbeli/',    cn: '肚子',    emoji: '🤰', uk: '/ˈbeli/' },
+      { word: 'leg',     phonetic: '/leɡ/',      cn: '腿',      emoji: '🦵', uk: '/leɡ/' },
+      { word: 'knee',    phonetic: '/niː/',      cn: '膝盖',    emoji: '🧎', uk: '/niː/' },
+      { word: 'foot',    phonetic: '/fʊt/',      cn: '脚',      emoji: '🦶', uk: '/fʊt/' },
+      { word: 'toe',     phonetic: '/toʊ/',      cn: '脚趾',    emoji: '👣', uk: '/təʊ/' },
+    ],
+  },
+  animal: {
+    name: '动物篇',
+    emoji: '🐾',
+    words: [
+      { word: 'cat',      phonetic: '/kæt/',       cn: '猫',      emoji: '🐱', uk: '/kæt/' },
+      { word: 'dog',      phonetic: '/dɔːɡ/',      cn: '狗',      emoji: '🐶', uk: '/dɒɡ/' },
+      { word: 'bird',     phonetic: '/bɜːrd/',     cn: '鸟',      emoji: '🐦', uk: '/bɜːd/' },
+      { word: 'fish',     phonetic: '/fɪʃ/',       cn: '鱼',      emoji: '🐟', uk: '/fɪʃ/' },
+      { word: 'rabbit',   phonetic: '/ˈræbɪt/',    cn: '兔子',    emoji: '🐰', uk: '/ˈræbɪt/' },
+      { word: 'bear',     phonetic: '/ber/',       cn: '熊',      emoji: '🐻', uk: '/beə/' },
+      { word: 'monkey',   phonetic: '/ˈmʌŋki/',    cn: '猴子',    emoji: '🐵', uk: '/ˈmʌŋki/' },
+      { word: 'tiger',    phonetic: '/ˈtaɪɡər/',   cn: '老虎',    emoji: '🐯', uk: '/ˈtaɪɡə/' },
+      { word: 'lion',     phonetic: '/ˈlaɪən/',    cn: '狮子',    emoji: '🦁', uk: '/ˈlaɪən/' },
+      { word: 'elephant', phonetic: '/ˈelɪfənt/',  cn: '大象',    emoji: '🐘', uk: '/ˈelɪfənt/' },
+      { word: 'panda',    phonetic: '/ˈpændə/',    cn: '熊猫',    emoji: '🐼', uk: '/ˈpændə/' },
+      { word: 'duck',     phonetic: '/dʌk/',       cn: '鸭子',    emoji: '🦆', uk: '/dʌk/' },
+      { word: 'pig',      phonetic: '/pɪɡ/',       cn: '猪',      emoji: '🐷', uk: '/pɪɡ/' },
+      { word: 'cow',      phonetic: '/kaʊ/',       cn: '奶牛',    emoji: '🐮', uk: '/kaʊ/' },
+      { word: 'horse',    phonetic: '/hɔːrs/',     cn: '马',      emoji: '🐴', uk: '/hɔːs/' },
+      { word: 'sheep',    phonetic: '/ʃiːp/',      cn: '羊',      emoji: '🐑', uk: '/ʃiːp/' },
+      { word: 'frog',     phonetic: '/frɔːɡ/',     cn: '青蛙',    emoji: '🐸', uk: '/frɒɡ/' },
+      { word: 'fox',      phonetic: '/fɑːks/',     cn: '狐狸',    emoji: '🦊', uk: '/fɒks/' },
+      { word: 'deer',     phonetic: '/dɪr/',       cn: '鹿',      emoji: '🦌', uk: '/dɪə/' },
+      { word: 'owl',      phonetic: '/aʊl/',       cn: '猫头鹰',  emoji: '🦉', uk: '/aʊl/' },
+    ],
+  },
+  color: {
+    name: '颜色篇',
+    emoji: '🎨',
+    words: [
+      { word: 'red',     phonetic: '/red/',      cn: '红色',    emoji: '🔴', uk: '/red/' },
+      { word: 'orange',  phonetic: '/ˈɔːrɪndʒ/', cn: '橙色',    emoji: '🟠', uk: '/ˈɒrɪndʒ/' },
+      { word: 'yellow',  phonetic: '/ˈjeloʊ/',   cn: '黄色',    emoji: '🟡', uk: '/ˈjeləʊ/' },
+      { word: 'green',   phonetic: '/ɡriːn/',    cn: '绿色',    emoji: '🟢', uk: '/ɡriːn/' },
+      { word: 'blue',    phonetic: '/bluː/',     cn: '蓝色',    emoji: '🔵', uk: '/bluː/' },
+      { word: 'purple',  phonetic: '/ˈpɜːrpl/',  cn: '紫色',    emoji: '🟣', uk: '/ˈpɜːpl/' },
+      { word: 'pink',    phonetic: '/pɪŋk/',     cn: '粉色',    emoji: '💗', uk: '/pɪŋk/' },
+      { word: 'brown',   phonetic: '/braʊn/',    cn: '棕色',    emoji: '🟤', uk: '/braʊn/' },
+      { word: 'black',   phonetic: '/blæk/',     cn: '黑色',    emoji: '⚫', uk: '/blæk/' },
+      { word: 'white',   phonetic: '/waɪt/',     cn: '白色',    emoji: '⚪', uk: '/waɪt/' },
+      { word: 'gray',    phonetic: '/ɡreɪ/',     cn: '灰色',    emoji: '🪨', uk: '/ɡreɪ/' },
+      { word: 'gold',    phonetic: '/ɡoʊld/',    cn: '金色',    emoji: '🥇', uk: '/ɡəʊld/' },
+      { word: 'silver',  phonetic: '/ˈsɪlvər/',  cn: '银色',    emoji: '🥈', uk: '/ˈsɪlvə/' },
+      { word: 'rainbow', phonetic: '/ˈreɪnboʊ/', cn: '彩虹',    emoji: '🌈', uk: '/ˈreɪnbəʊ/' },
+      { word: 'lime',    phonetic: '/laɪm/',     cn: '青柠绿',  emoji: '🍏', uk: '/laɪm/' },
+      { word: 'peach',   phonetic: '/piːtʃ/',    cn: '桃色',    emoji: '🍑', uk: '/piːtʃ/' },
+      { word: 'lemon',   phonetic: '/ˈlemən/',   cn: '柠檬黄',  emoji: '🍋', uk: '/ˈlemən/' },
+      { word: 'rose',    phonetic: '/roʊz/',     cn: '玫瑰红',  emoji: '🌹', uk: '/rəʊz/' },
+      { word: 'cream',   phonetic: '/kriːm/',    cn: '奶油色',  emoji: '🍦', uk: '/kriːm/' },
+      { word: 'mint',    phonetic: '/mɪnt/',     cn: '薄荷绿',  emoji: '🌿', uk: '/mɪnt/' },
+    ],
+  },
+  fruit: {
+    name: '水果篇',
+    emoji: '🍎',
+    words: [
+      { word: 'apple',      phonetic: '/ˈæp.əl/',           cn: '苹果',    emoji: '🍎', uk: '/ˈæpl/' },
+      { word: 'banana',     phonetic: '/bəˈnæn.ə/',         cn: '香蕉',    emoji: '🍌', uk: '/bəˈnɑːnə/' },
+      { word: 'orange',     phonetic: '/ˈɔːr.ɪndʒ/',        cn: '橙子',    emoji: '🍊', uk: '/ˈɒrɪndʒ/' },
+      { word: 'grapes',     phonetic: '/ɡreɪps/',           cn: '葡萄',    emoji: '🍇', uk: '/ɡreɪps/' },
+      { word: 'strawberry', phonetic: '/ˈstrɔːˌber.i/',     cn: '草莓',    emoji: '🍓', uk: '/ˈstrɔːbəri/' },
+      { word: 'watermelon', phonetic: '/ˈwɔː.t̬ɚˌmel.ən/',    cn: '西瓜',    emoji: '🍉', uk: '/ˈwɔːtəmelən/' },
+      { word: 'pear',       phonetic: '/per/',              cn: '梨',      emoji: '🍐', uk: '/peə/' },
+      { word: 'peach',      phonetic: '/piːtʃ/',            cn: '桃子',    emoji: '🍑', uk: '/piːtʃ/' },
+      { word: 'pineapple',  phonetic: '/ˈpaɪnˌæp.əl/',      cn: '菠萝',    emoji: '🍍', uk: '/ˈpaɪnæpl/' },
+      { word: 'mango',      phonetic: '/ˈmæŋ.ɡoʊ/',         cn: '芒果',    emoji: '🥭', uk: '/ˈmæŋɡəʊ/' },
+      { word: 'lemon',      phonetic: '/ˈlem.ən/',          cn: '柠檬',    emoji: '🍋', uk: '/ˈlemən/' },
+      { word: 'cherry',     phonetic: '/ˈtʃer.i/',          cn: '樱桃',    emoji: '🍒', uk: '/ˈtʃeri/' },
+      { word: 'blueberry',  phonetic: '/ˈbluːˌber.i/',      cn: '蓝莓',    emoji: '🫐', uk: '/ˈbluːbəri/' },
+      { word: 'kiwi',       phonetic: '/ˈkiː.wiː/',         cn: '猕猴桃',  emoji: '🥝', uk: '/ˈkiːwiː/' },
+      { word: 'plum',       phonetic: '/plʌm/',             cn: '李子',    emoji: '🟣', uk: '/plʌm/' },
+      { word: 'coconut',    phonetic: '/ˈkoʊ.kə.nʌt/',      cn: '椰子',    emoji: '🥥', uk: '/ˈkəʊkənʌt/' },
+      { word: 'papaya',     phonetic: '/pəˈpaɪ.ə/',         cn: '木瓜',    emoji: '🍈', uk: '/pəˈpaɪə/' },
+      { word: 'lychee',     phonetic: '/ˈlaɪ.tʃiː/',        cn: '荔枝',    emoji: '🍡', uk: '/ˈlaɪtʃiː/' },
+      { word: 'dragon fruit', phonetic: '/ˈdræɡ.ən fruːt/', cn: '火龙果',  emoji: '🐉', uk: '/ˈdræɡən fruːt/' },
+      { word: 'tangerine',  phonetic: '/ˌtæn.dʒəˈriːn/',    cn: '橘子',    emoji: '🍊', uk: '/ˌtændʒəˈriːn/' },
+      { word: 'avocado',    phonetic: '/ˌæv.əˈkɑː.doʊ/',    cn: '牛油果',  emoji: '🥑', uk: '/ˌævəˈkɑːdəʊ/' },
+      { word: 'pomegranate', phonetic: '/ˈpɑː.məˌɡræn.ɪt/', cn: '石榴',    emoji: '🍅', uk: '/ˈpɒmɪɡrænɪt/' },
+      { word: 'apricot',    phonetic: '/ˈeɪ.prɪ.kɑːt/',     cn: '杏',      emoji: '🟠', uk: '/ˈeɪprɪkɒt/' },
+      { word: 'fig',        phonetic: '/fɪɡ/',              cn: '无花果',  emoji: '🟤', uk: '/fɪɡ/' },
+      { word: 'raspberry',  phonetic: '/ˈræzˌber.i/',       cn: '覆盆子',  emoji: '🔴', uk: '/ˈrɑːzbəri/' },
+      { word: 'blackberry', phonetic: '/ˈblækˌber.i/',      cn: '黑莓',    emoji: '⚫', uk: '/ˈblækbəri/' },
+      { word: 'grapefruit', phonetic: '/ˈɡreɪp.fruːt/',     cn: '西柚',    emoji: '🍊', uk: '/ˈɡreɪpfruːt/' },
+      { word: 'mandarin',   phonetic: '/ˈmæn.dər.ɪn/',      cn: '柑橘',    emoji: '🍊', uk: '/ˈmændərɪn/' },
+      { word: 'passion fruit', phonetic: '/ˈpæʃ.ən fruːt/', cn: '百香果',  emoji: '🟡', uk: '/ˈpæʃən fruːt/' },
+      { word: 'durian',     phonetic: '/ˈdʊr.i.ən/',        cn: '榴莲',    emoji: '🌰', uk: '/ˈdʊəriən/' },
+    ],
+  },
+  food: {
+    name: '食物篇',
+    emoji: '🍔',
+    words: [
+      { word: 'bread',   phonetic: '/bred/',     cn: '面包',    emoji: '🍞', uk: '/bred/' },
+      { word: 'milk',    phonetic: '/mɪlk/',     cn: '牛奶',    emoji: '🥛', uk: '/mɪlk/' },
+      { word: 'egg',     phonetic: '/eɡ/',       cn: '鸡蛋',    emoji: '🥚', uk: '/eɡ/' },
+      { word: 'cake',    phonetic: '/keɪk/',     cn: '蛋糕',    emoji: '🍰', uk: '/keɪk/' },
+      { word: 'rice',    phonetic: '/raɪs/',     cn: '米饭',    emoji: '🍚', uk: '/raɪs/' },
+      { word: 'noodle',  phonetic: '/ˈnuːdl/',   cn: '面条',    emoji: '🍜', uk: '/ˈnuːdl/' },
+      { word: 'candy',   phonetic: '/ˈkændi/',   cn: '糖果',    emoji: '🍬', uk: '/ˈkændi/' },
+      { word: 'cookie',  phonetic: '/ˈkʊki/',    cn: '饼干',    emoji: '🍪', uk: '/ˈkʊki/' },
+      { word: 'juice',   phonetic: '/dʒuːs/',    cn: '果汁',    emoji: '🧃', uk: '/dʒuːs/' },
+      { word: 'meat',    phonetic: '/miːt/',     cn: '肉',      emoji: '🍖', uk: '/miːt/' },
+      { word: 'soup',    phonetic: '/suːp/',     cn: '汤',      emoji: '🍲', uk: '/suːp/' },
+      { word: 'corn',    phonetic: '/kɔːrn/',    cn: '玉米',    emoji: '🌽', uk: '/kɔːn/' },
+      { word: 'carrot',  phonetic: '/ˈkærət/',   cn: '胡萝卜',  emoji: '🥕', uk: '/ˈkærət/' },
+      { word: 'hamburger', phonetic: '/ˈhæm.bɝː.ɡɚ/', cn: '汉堡',    emoji: '🍔', uk: '/ˈhæmbɜːɡə/' },
+      { word: 'pizza',     phonetic: '/ˈpiːt.sə/',    cn: '披萨',    emoji: '🍕', uk: '/ˈpiːtsə/' },
+      { word: 'ice cream', phonetic: '/ˈaɪs kriːm/',  cn: '冰淇淋',  emoji: '🍦', uk: '/ˈaɪs kriːm/' },
+      { word: 'cheese',    phonetic: '/tʃiːz/',       cn: '奶酪',    emoji: '🧀', uk: '/tʃiːz/' },
+      { word: 'chocolate', phonetic: '/ˈtʃɑːk.lət/',  cn: '巧克力',  emoji: '🍫', uk: '/ˈtʃɒklət/' },
+      { word: 'dumpling',  phonetic: '/ˈdʌmp.lɪŋ/',   cn: '饺子',    emoji: '🥟', uk: '/ˈdʌmplɪŋ/' },
+      { word: 'mooncake',  phonetic: '/ˈmuːn.keɪk/',  cn: '月饼',    emoji: '🥮', uk: '/ˈmuːnkeɪk/' },
+      { word: 'zongzi',    phonetic: '/ˈzɒŋ.ziː/',    cn: '粽子',    emoji: '🍙', uk: '/ˈzɒŋziː/', img: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><ellipse cx='50' cy='82' rx='30' ry='7' fill='%23E5E8E8'/><path d='M50 20 L18 78 L82 78 Z' fill='%2367A548'/><path d='M50 20 L50 78 L82 78 Z' fill='%234F8C36'/><path d='M50 22 L45 6 L58 12 Z' fill='%2379B85A'/><path d='M34 78 Q40 48 50 22' stroke='%2385C068' stroke-width='2' fill='none'/><path d='M66 78 Q60 48 50 22' stroke='%2385C068' stroke-width='2' fill='none'/><path d='M32 68 L64 50' stroke='%23F3E3C3' stroke-width='5'/><path d='M34 52 L66 70' stroke='%23F3E3C3' stroke-width='5'/></svg>` },
+      { word: 'steamed bun', phonetic: '/ˌstiːmd ˈbʌn/', cn: '包子', emoji: '🥟', uk: '/ˌstiːmd ˈbʌn/', img: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='70' width='80' height='8' rx='4' fill='%23D9AE6B'/><rect x='14' y='78' width='72' height='11' rx='5' fill='%23E8C48A'/><ellipse cx='50' cy='52' rx='27' ry='22' fill='%23FDFEFE' stroke='%23D5DBDB' stroke-width='2'/><path d='M50 32 Q40 44 37 54' stroke='%23D5DBDB' stroke-width='2' fill='none'/><path d='M50 32 Q45 45 44 56' stroke='%23D5DBDB' stroke-width='2' fill='none'/><path d='M50 32 Q55 45 56 56' stroke='%23D5DBDB' stroke-width='2' fill='none'/><path d='M50 32 Q60 44 63 54' stroke='%23D5DBDB' stroke-width='2' fill='none'/><circle cx='50' cy='32' r='6' fill='%23F2F4F4' stroke='%23D5DBDB' stroke-width='2'/></svg>` },
+    ],
+  },
+  number: {
+    name: '数字篇',
+    emoji: '🔢',
+    words: [
+      { word: 'zero',  phonetic: '/ˈzɪroʊ/', cn: '零',  emoji: '0️⃣', uk: '/ˈzɪərəʊ/' },
+      { word: 'one',   phonetic: '/wʌn/',    cn: '一',  emoji: '1️⃣', uk: '/wʌn/' },
+      { word: 'two',   phonetic: '/tuː/',    cn: '二',  emoji: '2️⃣', uk: '/tuː/' },
+      { word: 'three', phonetic: '/θriː/',   cn: '三',  emoji: '3️⃣', uk: '/θriː/' },
+      { word: 'four',  phonetic: '/fɔːr/',   cn: '四',  emoji: '4️⃣', uk: '/fɔː/' },
+      { word: 'five',  phonetic: '/faɪv/',   cn: '五',  emoji: '5️⃣', uk: '/faɪv/' },
+      { word: 'six',   phonetic: '/sɪks/',   cn: '六',  emoji: '6️⃣', uk: '/sɪks/' },
+      { word: 'seven', phonetic: '/ˈsevn/',  cn: '七',  emoji: '7️⃣', uk: '/ˈsevn/' },
+      { word: 'eight', phonetic: '/eɪt/',    cn: '八',  emoji: '8️⃣', uk: '/eɪt/' },
+      { word: 'nine',  phonetic: '/naɪn/',   cn: '九',  emoji: '9️⃣', uk: '/naɪn/' },
+      { word: 'ten',   phonetic: '/ten/',    cn: '十',  emoji: '🔟', uk: '/ten/' },
+    ],
+  },
+  weather: {
+    name: '天气篇',
+    emoji: '🌞',
+    words: [
+      { word: 'sunny',     phonetic: '/ˈsʌni/',   cn: '晴朗的',  emoji: '☀️', uk: '/ˈsʌni/' },
+      { word: 'rainy',     phonetic: '/ˈreɪni/',  cn: '下雨的',  emoji: '🌧️', uk: '/ˈreɪni/' },
+      { word: 'cloudy',    phonetic: '/ˈklaʊdi/', cn: '多云的',  emoji: '🌥️', uk: '/ˈklaʊdi/' },
+      { word: 'windy',     phonetic: '/ˈwɪndi/',  cn: '有风的',  emoji: '🌬️', uk: '/ˈwɪndi/' },
+      { word: 'snowy',     phonetic: '/ˈsnoʊi/',  cn: '下雪的',  emoji: '🌨️', uk: '/ˈsnəʊi/' },
+      { word: 'stormy',    phonetic: '/ˈstɔːrmi/', cn: '暴风雨的', emoji: '⛈️', uk: '/ˈstɔːmi/' },
+      { word: 'foggy',     phonetic: '/ˈfɔːɡi/',  cn: '有雾的',  emoji: '🌫️', uk: '/ˈfɒɡi/' },
+      { word: 'sun',       phonetic: '/sʌn/',     cn: '太阳',    emoji: '🌞', uk: '/sʌn/' },
+      { word: 'moon',      phonetic: '/muːn/',    cn: '月亮',    emoji: '🌙', uk: '/muːn/' },
+      { word: 'star',      phonetic: '/stɑːr/',   cn: '星星',    emoji: '⭐', uk: '/stɑː/' },
+      { word: 'cloud',     phonetic: '/klaʊd/',   cn: '云',      emoji: '☁️', uk: '/klaʊd/' },
+      { word: 'rain',      phonetic: '/reɪn/',    cn: '雨',      emoji: '💧', uk: '/reɪn/' },
+      { word: 'snow',      phonetic: '/snoʊ/',    cn: '雪',      emoji: '❄️', uk: '/snəʊ/' },
+      { word: 'wind',      phonetic: '/wɪnd/',    cn: '风',      emoji: '💨', uk: '/wɪnd/' },
+      { word: 'ice',       phonetic: '/aɪs/',     cn: '冰',      emoji: '🧊', uk: '/aɪs/' },
+      { word: 'lightning', phonetic: '/ˈlaɪtnɪŋ/', cn: '闪电',   emoji: '⚡', uk: '/ˈlaɪtnɪŋ/' },
+      { word: 'thunder',   phonetic: '/ˈθʌndər/', cn: '雷',      emoji: '🌩️', uk: '/ˈθʌndə/' },
+      { word: 'sky',       phonetic: '/skaɪ/',    cn: '天空',    emoji: '🌌', uk: '/skaɪ/' },
+      { word: 'earth',     phonetic: '/ɜːrθ/',    cn: '地球',    emoji: '🌍', uk: '/ɜːθ/' },
+      { word: 'umbrella',  phonetic: '/ʌmˈbrelə/', cn: '雨伞',   emoji: '☔', uk: '/ʌmˈbrelə/' },
+    ],
+  },
+  toy: {
+    name: '玩具篇',
+    emoji: '🧸',
+    words: [
+      { word: 'ball',    phonetic: '/bɔːl/',      cn: '球',      emoji: '⚽', uk: '/bɔːl/' },
+      { word: 'doll',    phonetic: '/dɑːl/',      cn: '玩偶',    emoji: '🪆', uk: '/dɒl/' },
+      { word: 'kite',    phonetic: '/kaɪt/',      cn: '风筝',    emoji: '🪁', uk: '/kaɪt/' },
+      { word: 'balloon', phonetic: '/bəˈluːn/',   cn: '气球',    emoji: '🎈', uk: '/bəˈluːn/' },
+      { word: 'puzzle',  phonetic: '/ˈpʌzl/',     cn: '拼图',    emoji: '🧩', uk: '/ˈpʌzl/' },
+      { word: 'block',   phonetic: '/blɑːk/',     cn: '积木',    emoji: '🧱', uk: '/blɒk/' },
+      { word: 'robot',   phonetic: '/ˈroʊbɑːt/',  cn: '机器人',  emoji: '🤖', uk: '/ˈrəʊbɒt/' },
+      { word: 'drum',    phonetic: '/drʌm/',      cn: '鼓',      emoji: '🥁', uk: '/drʌm/' },
+      { word: 'piano',   phonetic: '/piˈænoʊ/',   cn: '钢琴',    emoji: '🎹', uk: '/piˈænəʊ/' },
+      { word: 'guitar',  phonetic: '/ɡɪˈtɑːr/',   cn: '吉他',    emoji: '🎸', uk: '/ɡɪˈtɑː/' },
+      { word: 'game',    phonetic: '/ɡeɪm/',      cn: '游戏',    emoji: '🎮', uk: '/ɡeɪm/' },
+      { word: 'marble',  phonetic: '/ˈmɑːrbl/',   cn: '弹珠',    emoji: '🔮', uk: '/ˈmɑːbl/' },
+      { word: 'puppet',  phonetic: '/ˈpʌpɪt/',    cn: '木偶',    emoji: '🎭', uk: '/ˈpʌpɪt/' },
+      { word: 'top',     phonetic: '/tɑːp/',      cn: '陀螺',    emoji: '🌀', uk: '/tɒp/' },
+      { word: 'horn',    phonetic: '/hɔːrn/',     cn: '喇叭',    emoji: '📯', uk: '/hɔːn/' },
+      { word: 'bell',    phonetic: '/bel/',       cn: '铃铛',    emoji: '🔔', uk: '/bel/' },
+    ],
+  },
+  transport: {
+    name: '交通篇',
+    emoji: '🚗',
+    words: [
+      { word: 'car',        phonetic: '/kɑːr/',        cn: '汽车',    emoji: '🚗', uk: '/kɑː/' },
+      { word: 'bus',        phonetic: '/bʌs/',         cn: '公交车',  emoji: '🚌', uk: '/bʌs/' },
+      { word: 'bike',       phonetic: '/baɪk/',        cn: '自行车',  emoji: '🚲', uk: '/baɪk/' },
+      { word: 'plane',      phonetic: '/pleɪn/',       cn: '飞机',    emoji: '✈️', uk: '/pleɪn/' },
+      { word: 'train',      phonetic: '/treɪn/',       cn: '火车',    emoji: '🚂', uk: '/treɪn/' },
+      { word: 'boat',       phonetic: '/boʊt/',        cn: '小船',    emoji: '⛵', uk: '/bəʊt/' },
+      { word: 'ship',       phonetic: '/ʃɪp/',         cn: '轮船',    emoji: '🚢', uk: '/ʃɪp/' },
+      { word: 'truck',      phonetic: '/trʌk/',        cn: '卡车',    emoji: '🚚', uk: '/trʌk/' },
+      { word: 'taxi',       phonetic: '/ˈtæksi/',      cn: '出租车',  emoji: '🚕', uk: '/ˈtæksi/' },
+      { word: 'rocket',     phonetic: '/ˈrɑːkɪt/',     cn: '火箭',    emoji: '🚀', uk: '/ˈrɒkɪt/' },
+      { word: 'helicopter', phonetic: '/ˈhelɪkɑːptər/', cn: '直升机', emoji: '🚁', uk: '/ˈhelɪkɒptə/' },
+      { word: 'motorcycle', phonetic: '/ˈmoʊtərsaɪkl/', cn: '摩托车', emoji: '🏍️', uk: '/ˈməʊtəsaɪkl/' },
+      { word: 'tractor',    phonetic: '/ˈtræktər/',    cn: '拖拉机',  emoji: '🚜', uk: '/ˈtræktə/' },
+      { word: 'subway',     phonetic: '/ˈsʌbweɪ/',     cn: '地铁',    emoji: '🚇', uk: '/ˈsʌbweɪ/' },
+      { word: 'scooter',    phonetic: '/ˈskuːtər/',    cn: '滑板车',  emoji: '🛴', uk: '/ˈskuːtə/' },
+      { word: 'spaceship',  phonetic: '/ˈspeɪsʃɪp/',   cn: '飞船',    emoji: '🛸', uk: '/ˈspeɪsʃɪp/' },
+      { word: 'police car', phonetic: '/pəˈliːs kɑːr/', cn: '警车',    emoji: '🚓', uk: '/pəˈliːs kɑː/' },
+      { word: 'ambulance',  phonetic: '/ˈæm.bjə.ləns/', cn: '救护车',  emoji: '🚑', uk: '/ˈæmbjələns/' },
+      { word: 'cement mixer', phonetic: '/sɪˈment ˌmɪk.sɚ/', cn: '水泥搅拌车', emoji: '🚛', uk: '/sɪˈment ˌmɪksə/', iconId: 'icon-engamejiaobanche' },
+      { word: 'excavator',  phonetic: '/ˈek.skə.veɪ.t̬ɚ/', cn: '挖掘机', emoji: '🏗️', uk: '/ˈekskəveɪtə/', iconId: 'icon-engamewajueji' },
+      { word: 'street sweeper', phonetic: '/ˈstriːt ˌswiː.pɚ/', cn: '扫路车', emoji: '🧹', uk: '/ˈstriːt ˌswiːpə/', iconId: 'icon-engamesaoluche' },
+    ],
+  },
+  shape: {
+    name: '形状篇',
+    emoji: '🔷',
+    words: [
+      { word: 'circle',    phonetic: '/ˈsɜːrkl/',   cn: '圆形',    emoji: '⭕', uk: '/ˈsɜːkl/' },
+      { word: 'square',    phonetic: '/skwer/',     cn: '正方形',  emoji: '🟦', uk: '/skweə/' },
+      { word: 'triangle',  phonetic: '/ˈtraɪæŋɡl/', cn: '三角形',  emoji: '🔺', uk: '/ˈtraɪæŋɡl/' },
+      { word: 'rectangle', phonetic: '/ˈrektæŋɡl/', cn: '长方形',  emoji: '▬', uk: '/ˈrektæŋɡl/' },
+      { word: 'diamond',   phonetic: '/ˈdaɪəmənd/', cn: '菱形',    emoji: '🔷', uk: '/ˈdaɪəmənd/' },
+      { word: 'heart',     phonetic: '/hɑːrt/',     cn: '心形',    emoji: '❤️', uk: '/hɑːt/' },
+      { word: 'oval',      phonetic: '/ˈoʊvl/',     cn: '椭圆形',  emoji: '🥚', uk: '/ˈəʊvl/' },
+      { word: 'cube',      phonetic: '/kjuːb/',     cn: '立方体',  emoji: '🧊', uk: '/kjuːb/' },
+      { word: 'cone',      phonetic: '/koʊn/',      cn: '圆锥形',  emoji: '🍦', uk: '/kəʊn/' },
+      { word: 'ring',      phonetic: '/rɪŋ/',       cn: '环形',    emoji: '💍', uk: '/rɪŋ/' },
+      { word: 'cross',     phonetic: '/krɔːs/',     cn: '十字形',  emoji: '➕', uk: '/krɒs/' },
+      { word: 'line',      phonetic: '/laɪn/',      cn: '直线',    emoji: '➖', uk: '/laɪn/' },
+    ],
+  },
+  nature: {
+    name: '自然篇',
+    emoji: '🌳',
+    words: [
+      { word: 'tree',     phonetic: '/triː/',      cn: '树',      emoji: '🌳', uk: '/triː/' },
+      { word: 'flower',   phonetic: '/ˈflaʊər/',   cn: '花',      emoji: '🌸', uk: '/ˈflaʊə/' },
+      { word: 'leaf',     phonetic: '/liːf/',      cn: '叶子',    emoji: '🍃', uk: '/liːf/' },
+      { word: 'river',    phonetic: '/ˈrɪvər/',    cn: '河',      emoji: '🏞️', uk: '/ˈrɪvə/' },
+      { word: 'mountain', phonetic: '/ˈmaʊntn/',   cn: '山',      emoji: '⛰️', uk: '/ˈmaʊntɪn/' },
+      { word: 'sea',      phonetic: '/siː/',       cn: '海',      emoji: '🌊', uk: '/siː/' },
+      { word: 'forest',   phonetic: '/ˈfɔːrɪst/',  cn: '森林',    emoji: '🌲', uk: '/ˈfɒrɪst/' },
+      { word: 'beach',    phonetic: '/biːtʃ/',     cn: '沙滩',    emoji: '🏖️', uk: '/biːtʃ/' },
+      { word: 'island',   phonetic: '/ˈaɪlənd/',   cn: '岛',      emoji: '🏝️', uk: '/ˈaɪlənd/' },
+      { word: 'desert',   phonetic: '/ˈdezərt/',   cn: '沙漠',    emoji: '🏜️', uk: '/ˈdezət/' },
+      { word: 'volcano',  phonetic: '/vɑːlˈkeɪnoʊ/', cn: '火山',  emoji: '🌋', uk: '/vɒlˈkeɪnəʊ/' },
+      { word: 'cave',     phonetic: '/keɪv/',      cn: '洞穴',    emoji: '🕳️', uk: '/keɪv/' },
+    ],
+  },
+  family: {
+    name: '家庭篇',
+    emoji: '👨‍👩‍👧',
+    words: [
+      { word: 'family',  phonetic: '/ˈfæməli/',  cn: '家庭',    emoji: '👨‍👩‍👧', uk: '/ˈfæməli/' },
+      { word: 'mother',  phonetic: '/ˈmʌðər/',   cn: '妈妈',    emoji: '👩', uk: '/ˈmʌðə/' },
+      { word: 'father',  phonetic: '/ˈfɑːðər/',  cn: '爸爸',    emoji: '👨', uk: '/ˈfɑːðə/' },
+      { word: 'sister',  phonetic: '/ˈsɪstər/',  cn: '姐妹',    emoji: '👧', uk: '/ˈsɪstə/' },
+      { word: 'brother', phonetic: '/ˈbrʌðər/',  cn: '兄弟',    emoji: '👦', uk: '/ˈbrʌðə/' },
+      { word: 'baby',    phonetic: '/ˈbeɪbi/',   cn: '宝宝',    emoji: '👶', uk: '/ˈbeɪbi/' },
+      { word: 'grandma', phonetic: '/ˈɡrænmɑː/', cn: '奶奶',    emoji: '👵', uk: '/ˈɡrænmɑː/' },
+      { word: 'grandpa', phonetic: '/ˈɡrænpɑː/', cn: '爷爷',    emoji: '👴', uk: '/ˈɡrænpɑː/' },
+      { word: 'friend',  phonetic: '/frend/',    cn: '朋友',    emoji: '🧑‍🤝‍🧑', uk: '/frend/' },
+      { word: 'teacher', phonetic: '/ˈtiːtʃər/', cn: '老师',    emoji: '👩‍🏫', uk: '/ˈtiːtʃə/' },
+    ],
+  },
+  vegetable: {
+    name: '蔬菜篇',
+    emoji: '🥬',
+    words: [
+      { word: 'grass',     phonetic: '/ɡræs/',        cn: '小草',    emoji: '🌱', uk: '/ɡrɑːs/', iconId: 'icon-engamexiaocao' },
+      { word: 'tomato',    phonetic: '/təˈmeɪtoʊ/',   cn: '番茄',    emoji: '🍅', uk: '/təˈmɑːtəʊ/' },
+      { word: 'potato',    phonetic: '/pəˈteɪtoʊ/',   cn: '土豆',    emoji: '🥔', uk: '/pəˈteɪtəʊ/' },
+      { word: 'cabbage',   phonetic: '/ˈkæbɪdʒ/',     cn: '卷心菜',  emoji: '🥬', uk: '/ˈkæbɪdʒ/', iconId: 'icon-engamejuanxincai' },
+      { word: 'onion',     phonetic: '/ˈʌnjən/',      cn: '洋葱',    emoji: '🧅', uk: '/ˈʌnjən/', iconId: 'icon-engameyangcong' },
+      { word: 'cucumber',  phonetic: '/ˈkjuːkʌmbər/', cn: '黄瓜',    emoji: '🥒', uk: '/ˈkjuːkʌmbə/' },
+      { word: 'pumpkin',   phonetic: '/ˈpʌmpkɪn/',    cn: '南瓜',    emoji: '🎃', uk: '/ˈpʌmpkɪn/' },
+      { word: 'eggplant',  phonetic: '/ˈeɡplænt/',    cn: '茄子',    emoji: '🍆', uk: '/ˈeɡplɑːnt/' },
+      { word: 'mushroom',  phonetic: '/ˈmʌʃrʊm/',     cn: '蘑菇',    emoji: '🍄', uk: '/ˈmʌʃruːm/' },
+      { word: 'pepper',    phonetic: '/ˈpepər/',      cn: '辣椒',    emoji: '🌶️', uk: '/ˈpepə/' },
+      { word: 'garlic',    phonetic: '/ˈɡɑːrlɪk/',    cn: '大蒜',    emoji: '🧄', uk: '/ˈɡɑːlɪk/' },
+      { word: 'broccoli',  phonetic: '/ˈbrɑːkəli/',   cn: '西兰花',  emoji: '🥦', uk: '/ˈbrɒkəli/' },
+      { word: 'bean',      phonetic: '/biːn/',        cn: '豆子',    emoji: '🫘', uk: '/biːn/' },
+      { word: 'ginger',    phonetic: '/ˈdʒɪndʒər/',   cn: '姜',      emoji: '🫚', uk: '/ˈdʒɪndʒə/' },
+      { word: 'spinach',   phonetic: '/ˈspɪnɪtʃ/',    cn: '菠菜',    emoji: '🌿', uk: '/ˈspɪnɪdʒ/', iconId: 'icon-engamebocai' },
+      { word: 'red cabbage', phonetic: '/ˌred ˈkæbɪdʒ/', cn: '紫甘蓝', emoji: '🟣', uk: '/ˌred ˈkæbɪdʒ/', iconId: 'icon-engameziganlan' },
+      { word: 'carrot',    phonetic: '/ˈkærət/',      cn: '胡萝卜',  emoji: '🥕', uk: '/ˈkærət/' },
+      { word: 'okra',      phonetic: '/ˈoʊkrə/',      cn: '秋葵',    emoji: '🫑', uk: '/ˈəʊkrə/', iconId: 'icon-engameqiukui' },
+      { word: 'bok choy',  phonetic: '/ˌbɑːk ˈtʃɔɪ/', cn: '青菜',    emoji: '🥬', uk: '/ˌbɒk ˈtʃɔɪ/', iconId: 'icon-engameqingcai' },
+    ],
+  },
+};
+// ===== 主题持久化（记住上次选择的主题）=====
+const THEME_STORAGE_KEY = 'englishGame.currentTheme';
+function loadSavedTheme() {
+  try {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved && THEMES[saved]) return saved; // 校验主题仍存在，防止失效数据
+  } catch (e) { /* 隐私模式等场景忽略 */ }
+  return 'emotion';
+}
+function saveTheme(theme) {
+  try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch (e) {}
+}
+
+let currentTheme = loadSavedTheme(); // 当前主题（从缓存恢复，默认 emotion）
+let wordQueue = []; // 待学习单词队列（洗牌后逐个弹出，用完重置）
+// ==============================
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// UI元素
+const scoreDisplay = document.getElementById('score-display');
+const childNameEl = document.getElementById('child-name');
+const hintEl = document.querySelector('.hint-text');
+const celebrationOverlay = document.getElementById('celebration-overlay');
+const wordEmojiEl = document.getElementById('word-emoji');
+const wordEnglishEl = document.getElementById('word-english');
+const wordPhoneticEl = document.getElementById('word-phonetic');
+const wordChineseEl = document.getElementById('word-chinese');
+const dismissHint = document.querySelector('.celebration-dismiss');
+const wordReplayBtn = document.getElementById('word-replay');
+const themeEntryBtn = document.getElementById('theme-entry');
+const themeEntryEmoji = document.getElementById('theme-entry-emoji');
+const themeEntryName = document.getElementById('theme-entry-name');
+const themePanelOverlay = document.getElementById('theme-panel-overlay');
+const themeGrid = document.getElementById('theme-grid');
+const themeCloseBtn = document.getElementById('theme-close');
+const accentEntryBtn = document.getElementById('accent-entry');
+const accentFlag = document.getElementById('accent-flag');
+const accentName = document.getElementById('accent-name');
+
+// 当前正在展示的单词对象（含美式 phonetic / 英式 uk 音标，供"再读一遍"与口音切换使用）
+let currentWordObj = null;
+
+// ===== 主题选择面板 =====
+// 动态生成主题格子（新增主题只需改 THEMES，无需改 HTML）
+Object.entries(THEMES).forEach(([key, t]) => {
+  const cell = document.createElement('button');
+  cell.className = 'theme-cell';
+  cell.dataset.theme = key;
+  cell.innerHTML = `
+    <span class="theme-cell-emoji">${t.emoji}</span>
+    <span class="theme-cell-name">${t.name}</span>
+    <span class="theme-cell-count">${t.words.length} 词</span>
+  `;
+  cell.addEventListener('click', () => {
+    switchTheme(key);
+    closeThemePanel();
+  });
+  themeGrid.appendChild(cell);
+});
+
+function openThemePanel() {
+  themePanelOverlay.classList.add('active');
+}
+function closeThemePanel() {
+  themePanelOverlay.classList.remove('active');
+}
+
+// 入口按钮：打开面板
+themeEntryBtn.addEventListener('click', () => openThemePanel());
+themeEntryBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+// 关闭按钮 & 点击背景关闭
+themeCloseBtn.addEventListener('click', () => closeThemePanel());
+themePanelOverlay.addEventListener('pointerdown', (e) => {
+  if (e.target === themePanelOverlay) closeThemePanel();
+});
+
+// 切换单词主题
+function switchTheme(theme) {
+  if (theme === currentTheme) return;
+  currentTheme = theme;
+  preloadWordImages(theme); // 预加载该主题的图案（图片资源）
+  wordQueue = []; // 重置队列（下次 getNextWord 自动重新洗牌）
+  balloons.length = 0; // 清空旧主题的气球，新主题单词的气球重新生成
+  score = 0;
+  scoreDisplay.textContent = score;
+  // 更新入口按钮（显示当前主题）
+  themeEntryEmoji.textContent = THEMES[theme].emoji;
+  themeEntryName.textContent = THEMES[theme].name;
+  // 更新面板格子高亮
+  document.querySelectorAll('.theme-cell').forEach(cell => {
+    cell.classList.toggle('active', cell.dataset.theme === theme);
+  });
+  // 更新副标题
+  childNameEl.textContent = `${THEMES[theme].name} · 戳破气球学单词`;
+  // 记住选择，下次打开自动恢复
+  saveTheme(theme);
+}
+
+// 初始化入口按钮与高亮（使用已恢复的主题）
+themeEntryEmoji.textContent = THEMES[currentTheme].emoji;
+themeEntryName.textContent = THEMES[currentTheme].name;
+document.querySelectorAll('.theme-cell').forEach(cell => {
+  cell.classList.toggle('active', cell.dataset.theme === currentTheme);
+});
+childNameEl.textContent = `${THEMES[currentTheme].name} · 戳破气球学单词`;
+
+// Canvas 尺寸
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ============ 游戏状态 ============
+let score = 0;
+let balloons = [];
+let particles = [];
+let confettiPieces = [];
+let stars = [];
+let floatingTexts = [];
+let sparkles = [];
+let gameTime = 0;
+let lastBalloonTime = 0;
+let balloonInterval = 1200; // ms
+let difficultyLevel = 1;
+let isCelebrating = false;
+let canDismiss = false;
+let touchFeedback = null;
+
+// ============ 音效系统 ============
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // iOS Safari 等移动端浏览器：AudioContext 默认挂起，必须手动恢复
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playPop(balloonType) {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    // 特殊气球（星星/彩虹/礼物）播放专属庆祝音
+    if (balloonType === 'star' || balloonType === 'rainbow' || balloonType === 'gift') {
+      playChime(ctx, now);
+      return;
+    }
+    const pops = [popPa, popBo, popPu, popJiu, popPeng, popDing, popBoing, popXiu, popGurgle, popDong, popBeep];
+    const fn = pops[Math.floor(Math.random() * pops.length)];
+    fn(ctx, now);
+  } catch (e) { /* 静默降级 */ }
+}
+
+// "啪" —— 清脆短促，像捏爆小气球
+function popPa(ctx, now) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.06, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.008));
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.35, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  src.connect(g); g.connect(ctx.destination); src.start(now); src.stop(now + 0.06);
+
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(600, now); o.frequency.exponentialRampToValueAtTime(100, now + 0.04);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.15, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.04);
+}
+
+// "波" —— 圆润低沉，像水泡破裂
+function popBo(ctx, now) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.025));
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.25, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+  src.connect(g); g.connect(ctx.destination); src.start(now); src.stop(now + 0.1);
+
+  const o = ctx.createOscillator(); o.type = 'triangle';
+  o.frequency.setValueAtTime(200, now); o.frequency.exponentialRampToValueAtTime(50, now + 0.08);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.3, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.08);
+
+  const o2 = ctx.createOscillator(); o2.type = 'sine';
+  o2.frequency.setValueAtTime(80, now); o2.frequency.exponentialRampToValueAtTime(30, now + 0.07);
+  const og2 = ctx.createGain(); og2.gain.setValueAtTime(0.2, now); og2.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+  o2.connect(og2); og2.connect(ctx.destination); o2.start(now); o2.stop(now + 0.07);
+}
+
+// "噗" —— 闷闷的放气声，像没吹饱的气球漏气
+function popPu(ctx, now) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) * 0.5;
+  const filt = ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.setValueAtTime(800, now);
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.2, now); g.gain.linearRampToValueAtTime(0.001, now + 0.15);
+  src.connect(filt); filt.connect(g); g.connect(ctx.destination); src.start(now); src.stop(now + 0.15);
+}
+
+// "啾" —— 卡通风格，音调先升后降
+function popJiu(ctx, now) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.07, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.01));
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.2, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+  src.connect(g); g.connect(ctx.destination); src.start(now); src.stop(now + 0.07);
+
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(400, now); o.frequency.linearRampToValueAtTime(800, now + 0.03);
+  o.frequency.linearRampToValueAtTime(200, now + 0.06);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.18, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.06);
+}
+
+// "砰" —— 最响的大爆炸
+function popPeng(ctx, now) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.02));
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.4, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+  src.connect(g); g.connect(ctx.destination); src.start(now); src.stop(now + 0.12);
+
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(120, now); o.frequency.exponentialRampToValueAtTime(20, now + 0.1);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.35, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.1);
+
+  const o2 = ctx.createOscillator(); o2.type = 'square';
+  o2.frequency.setValueAtTime(300, now); o2.frequency.exponentialRampToValueAtTime(60, now + 0.05);
+  const og2 = ctx.createGain(); og2.gain.setValueAtTime(0.08, now); og2.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+  o2.connect(og2); og2.connect(ctx.destination); o2.start(now); o2.stop(now + 0.05);
+}
+
+// "叮" —— 清脆铃铛声
+function popDing(ctx, now) {
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(1200, now);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.3, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.25);
+  const o2 = ctx.createOscillator(); o2.type = 'sine';
+  o2.frequency.setValueAtTime(1800, now);
+  const og2 = ctx.createGain(); og2.gain.setValueAtTime(0.12, now); og2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+  o2.connect(og2); og2.connect(ctx.destination); o2.start(now); o2.stop(now + 0.2);
+}
+
+// "啵" —— 弹簧音，音调上下弹跳
+function popBoing(ctx, now) {
+  const o = ctx.createOscillator(); o.type = 'triangle';
+  o.frequency.setValueAtTime(300, now);
+  o.frequency.exponentialRampToValueAtTime(900, now + 0.04);
+  o.frequency.exponentialRampToValueAtTime(500, now + 0.09);
+  o.frequency.exponentialRampToValueAtTime(700, now + 0.14);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.25, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.18);
+}
+
+// "咻" —— 口哨音，音调快速上升
+function popXiu(ctx, now) {
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(500, now); o.frequency.exponentialRampToValueAtTime(2500, now + 0.12);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.0001, now); og.gain.exponentialRampToValueAtTime(0.25, now + 0.03);
+  og.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.15);
+}
+
+// "咕噜" —— 冒泡声
+function popGurgle(ctx, now) {
+  for (let i = 0; i < 3; i++) {
+    const t = now + i * 0.06;
+    const o = ctx.createOscillator(); o.type = 'sine';
+    const f = 300 + Math.random() * 200;
+    o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 1.5, t + 0.02);
+    o.frequency.exponentialRampToValueAtTime(f * 0.8, t + 0.05);
+    const og = ctx.createGain(); og.gain.setValueAtTime(0.15, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + 0.05);
+  }
+}
+
+// "咚" —— 低沉木鱼/鼓声
+function popDong(ctx, now) {
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(180, now); o.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.35, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.08);
+  const o2 = ctx.createOscillator(); o2.type = 'triangle';
+  o2.frequency.setValueAtTime(120, now); o2.frequency.exponentialRampToValueAtTime(50, now + 0.06);
+  const og2 = ctx.createGain(); og2.gain.setValueAtTime(0.2, now); og2.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  o2.connect(og2); og2.connect(ctx.destination); o2.start(now); o2.stop(now + 0.06);
+}
+
+// "哔" —— 电子音
+function popBeep(ctx, now) {
+  const o = ctx.createOscillator(); o.type = 'square';
+  o.frequency.setValueAtTime(800, now);
+  const og = ctx.createGain(); og.gain.setValueAtTime(0.12, now); og.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+  o.connect(og); og.connect(ctx.destination); o.start(now); o.stop(now + 0.1);
+}
+
+// 庆祝音 —— 上行琶音，像"叮咚叮咚"的小礼花
+function playChime(ctx, now) {
+  const notes = [523, 659, 784, 1046]; // C5 E5 G5 C6
+  notes.forEach((freq, i) => {
+    const t = now + i * 0.08;
+    const o = ctx.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(freq, t);
+    const og = ctx.createGain(); og.gain.setValueAtTime(0.2, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    o.connect(og); og.connect(ctx.destination); o.start(t); o.stop(t + 0.3);
+  });
+}
+
+// 鼠标/触摸位置
+let mouseX = W / 2;
+let mouseY = H / 2;
+let isTouching = false;
+
+// ============ 颜色 ============
+const BALLOON_COLORS = [
+  '#FF6B6B', '#FF8E72', '#FFD93D', '#FFC93C',
+  '#6BCB77', '#4D96FF', '#9B59B6', '#FF6FB7',
+  '#00D2FF', '#36D7B7', '#F8B500', '#FC427B',
+  '#1E90FF', '#FF1493', '#7BED9F', '#E056A0',
+];
+
+const PASTEL_COLORS = [
+  '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
+  '#BAE1FF', '#E8BAFF', '#FFB3DE', '#B3FFE0',
+];
+
+// ============ 背景星星 ============
+function createStars() {
+  stars = [];
+  for (let i = 0; i < 40; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H * 0.6,
+      size: Math.random() * 2.5 + 1,
+      twinkle: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.03 + 0.01,
+      opacity: Math.random() * 0.5 + 0.3,
+    });
+  }
+}
+createStars();
+
+// ============ 背景彩纸 ============
+function spawnConfetti() {
+  if (confettiPieces.length > 60) return;
+  const shapes = ['circle', 'rect', 'heart'];
+  for (let i = 0; i < 3; i++) {
+    confettiPieces.push({
+      x: Math.random() * W,
+      y: -20,
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 12 + 4,
+      color: BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)],
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: Math.random() * 1.2 + 0.8,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 4,
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
+      opacity: 0.8,
+    });
+  }
+}
+
+// ============ 单词图案：图片优先，emoji 兜底 ============
+// 图案来源两种：① 词条内联的 img(data URI)  ② iconId（iconfont symbol，运行时转换）
+// 加载完成才绘制；未加载好或加载失败一律回退 emoji
+
+// 把 iconfont 的 <symbol> 转成独立 SVG 的 data URI
+// （canvas 画不了 <use>，必须先转成图片）
+function symbolToDataUri(id) {
+  const sym = document.querySelector('#' + id);
+  if (!sym || !sym.innerHTML) return null; // 脚本未加载完 / 加载失败
+  const vb = sym.getAttribute('viewBox') || '0 0 1024 1024';
+  // 属性双引号 -> 单引号（避开 JS/HTML 引号冲突）；颜色 # -> %23
+  const inner = sym.innerHTML.replace(/"/g, "'").replace(/#/g, '%23');
+  return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='${vb}'>${inner}</svg>`;
+}
+
+// 取词条的图案地址：内联 img 优先，否则用 iconId 现取（取到后缓存回词条，后续零开销）
+function resolveWordImg(word) {
+  if (!word) return null;
+  if (!word.img && word.iconId) {
+    word.img = symbolToDataUri(word.iconId); // 未就绪时返回 null，下一帧会再试
+  }
+  return word.img || null;
+}
+
+const wordImageCache = new Map();
+function getWordImage(src) {
+  if (!src) return null;
+  let entry = wordImageCache.get(src);
+  if (!entry) {
+    const img = new Image();
+    entry = { img, ready: false, failed: false };
+    img.onload = () => { entry.ready = true; };
+    img.onerror = () => { entry.failed = true; }; // 加载失败则永久回退 emoji
+    img.src = src;
+    wordImageCache.set(src, entry);
+  }
+  return entry.ready ? entry.img : null;
+}
+
+// 预加载某主题的图案，避免首次弹出时闪回 emoji
+function preloadWordImages(theme) {
+  const list = (THEMES[theme] && THEMES[theme].words) || [];
+  list.forEach(w => { const src = resolveWordImg(w); if (src) getWordImage(src); });
+}
+
+// iconfont 脚本就绪后，把当前主题的图标预热进缓存
+window.__onIconfontReady = function () { preloadWordImages(currentTheme); };
+
+// 渲染卡片图案：图片优先；iconfont 尚未就绪时短暂重试，就绪后自动补上
+function renderWordVisual(word, attempt) {
+  attempt = attempt || 0;
+  const src = resolveWordImg(word);
+  if (src) {
+    wordEmojiEl.innerHTML = `<img src="${src}" alt="">`;
+    return;
+  }
+  wordEmojiEl.textContent = word.emoji;
+  if (word.iconId && attempt < 15) { // 最多等 3 秒
+    setTimeout(() => {
+      if (isCelebrating && currentWordObj === word) renderWordVisual(word, attempt + 1);
+    }, 200);
+  }
+}
+
+// ============ 气球类 ============
+class Balloon {
+  constructor(type = 'normal', word = null) {
+    this.type = type; // normal, bunny, bear, star, rainbow, gift
+    this.word = word; // 绑定的单词对象，戳破后展示的就是它
+    this.x = Math.random() * (W - 160) + 80;
+    this.y = H + 120;
+    this.targetY = Math.random() * H * 0.35 + H * 0.1;
+    this.radius = this.type === 'star' ? 55 : this.type === 'gift' ? 50 : Math.random() * 20 + 60;
+    this.color = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+    if (this.type === 'rainbow') this.color = 'rainbow';
+    if (this.type === 'gift') this.color = '#FF6FB7';
+    
+    this.floatSpeed = Math.random() * 0.4 + 0.3;
+    this.wobbleAmp = Math.random() * 2 + 1;
+    this.wobbleSpeed = Math.random() * 0.02 + 0.01;
+    this.wobbleOffset = Math.random() * Math.PI * 2;
+    this.opacity = 1;
+    this.popped = false;
+    this.popTimer = 0;
+    this.stringLength = this.radius * 1.8;
+    this.bowColor = '#FFD93D';
+    
+    // 气球中央图案 = 所绑定单词的 emoji（与戳破后的单词卡片保持一致）
+    this.icon = word ? word.emoji : '🎈';
+    
+    // 分数
+    this.points = this.type === 'star' ? 5 : this.type === 'rainbow' ? 3 : this.type === 'gift' ? 3 : 1;
+  }
+
+  update(time) {
+    if (this.popped) {
+      this.popTimer++;
+      this.opacity = Math.max(0, 1 - this.popTimer / 15);
+      return this.popTimer < 15;
+    }
+    
+    // 上浮
+    if (this.y > this.targetY) {
+      this.y -= this.floatSpeed;
+    } else {
+      // 到达目标高度后缓慢晃动
+      this.y += Math.sin(time * 0.001 + this.wobbleOffset) * 0.3;
+    }
+    
+    // 左右摇晃
+    this.wobbleOffset += this.wobbleSpeed;
+    this.x += Math.sin(time * 0.002 + this.wobbleOffset) * this.wobbleAmp * 0.3;
+    
+    // 超出屏幕顶部回收
+    if (this.y < -this.radius * 2) {
+      return false;
+    }
+    
+    return true;
+  }
+
+  draw(ctx) {
+    if (this.popped && this.popTimer > 8) {
+      // 8帧后完全消失，粒子系统接管
+      return;
+    }
+    
+    ctx.save();
+    ctx.globalAlpha = this.opacity;
+    ctx.translate(this.x, this.y);
+    
+    // 戳破时短暂放大效果
+    if (this.popped && this.popTimer <= 8) {
+      const scale = 1 + this.popTimer * 0.15;
+      ctx.scale(scale, scale);
+    }
+    
+    // 绳子
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(150,150,150,0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.moveTo(0, this.radius * 0.7);
+    // 画波浪线绳子
+    for (let i = 0; i < 8; i++) {
+      const t = i / 8;
+      const sx = Math.sin(t * Math.PI * 4) * 3;
+      const sy = t * this.stringLength;
+      ctx.lineTo(sx, this.radius * 0.7 + sy);
+    }
+    ctx.stroke();
+    
+    // 蝴蝶结
+    const bowY = this.radius * 0.7 + this.stringLength * 0.25;
+    this.drawBow(ctx, 0, bowY);
+    
+    // 气球主体
+    if (this.type === 'star') {
+      this.drawStarBalloon(ctx);
+    } else if (this.type === 'bunny') {
+      this.drawBunnyBalloon(ctx);
+    } else if (this.type === 'bear') {
+      this.drawBearBalloon(ctx);
+    } else if (this.type === 'gift') {
+      this.drawGiftBalloon(ctx);
+    } else {
+      this.drawNormalBalloon(ctx);
+    }
+    
+    ctx.restore();
+  }
+
+  // 气球中央图案：有图片优先画图片，否则画 emoji（图片视觉尺寸略大于 emoji 字号）
+  drawIcon(ctx, imgSize, fontPx, y) {
+    const img = getWordImage(resolveWordImg(this.word));
+    if (img) {
+      ctx.drawImage(img, -imgSize / 2, -imgSize / 2 + y, imgSize, imgSize);
+      return;
+    }
+    ctx.font = `${fontPx}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.icon, 0, y);
+  }
+
+  drawNormalBalloon(ctx) {
+    const r = this.radius;
+    
+    // 高光
+    const grad = ctx.createRadialGradient(-r*0.25, -r*0.3, r*0.1, 0, 0, r);
+    if (this.color === 'rainbow') {
+      grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+      grad.addColorStop(0.3, '#FF6B6B');
+      grad.addColorStop(0.5, '#FFD93D');
+      grad.addColorStop(0.7, '#6BCB77');
+      grad.addColorStop(1, '#4D96FF');
+    } else {
+      grad.addColorStop(0, 'rgba(255,255,255,0.6)');
+      grad.addColorStop(0.25, this.lighten(this.color, 0.3));
+      grad.addColorStop(0.5, this.color);
+      grad.addColorStop(1, this.darken(this.color, 0.3));
+    }
+    
+    // 椭圆气球
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 0.75, r, 0, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    
+    // 边框
+    ctx.strokeStyle = this.darken(this.color === 'rainbow' ? '#FF6B6B' : this.color, 0.2);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // 底部小三角
+    ctx.beginPath();
+    ctx.moveTo(-6, r * 0.85);
+    ctx.lineTo(6, r * 0.85);
+    ctx.lineTo(0, r * 0.7);
+    ctx.closePath();
+    ctx.fillStyle = this.darken(this.color === 'rainbow' ? '#FF6B6B' : this.color, 0.2);
+    ctx.fill();
+    
+    // 第二个高光点
+    ctx.beginPath();
+    ctx.arc(-r*0.2, -r*0.35, r*0.15, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fill();
+    
+    // 显示图标（图片优先，emoji 兜底）
+    this.drawIcon(ctx, r * 0.75, r * 0.55, 1);
+  }
+
+  drawStarBalloon(ctx) {
+    const r = this.radius;
+    // 五角星
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const outerAngle = (i * 72 - 90) * Math.PI / 180;
+      const innerAngle = ((i * 72) + 36 - 90) * Math.PI / 180;
+      const ox = Math.cos(outerAngle) * r;
+      const oy = Math.sin(outerAngle) * r;
+      const ix = Math.cos(innerAngle) * r * 0.45;
+      const iy = Math.sin(innerAngle) * r * 0.45;
+      if (i === 0) ctx.moveTo(ox, oy);
+      else ctx.lineTo(ox, oy);
+      ctx.lineTo(ix, iy);
+    }
+    ctx.closePath();
+    
+    const grad = ctx.createRadialGradient(0, -r*0.1, r*0.1, 0, 0, r);
+    grad.addColorStop(0, '#FFF9C4');
+    grad.addColorStop(0.4, '#FFD700');
+    grad.addColorStop(1, '#FFA000');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = '#E65100';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // 中央显示绑定单词的图案（与卡片统一，图片优先）
+    this.drawIcon(ctx, r * 0.68, r * 0.5, 2);
+  }
+
+  drawBunnyBalloon(ctx) {
+    const r = this.radius;
+    this.drawNormalBalloon(ctx);
+    // 兔子耳朵
+    ctx.fillStyle = this.color;
+    ctx.strokeStyle = this.darken(this.color, 0.2);
+    ctx.lineWidth = 1.5;
+    for (let side of [-1, 1]) {
+      ctx.beginPath();
+      const earX = side * r * 0.3;
+      ctx.ellipse(earX, -r * 0.85, r*0.18, r*0.45, side * 0.15, 0, Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+      // 耳朵内部粉色
+      ctx.beginPath();
+      ctx.ellipse(earX, -r * 0.85, r*0.09, r*0.28, side * 0.15, 0, Math.PI*2);
+      ctx.fillStyle = '#FFB3BA';
+      ctx.fill();
+    }
+  }
+
+  drawBearBalloon(ctx) {
+    const r = this.radius;
+    this.drawNormalBalloon(ctx);
+    // 熊耳朵
+    ctx.fillStyle = this.color;
+    ctx.strokeStyle = this.darken(this.color, 0.2);
+    ctx.lineWidth = 1.5;
+    for (let side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.arc(side * r * 0.5, -r * 0.7, r * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // 耳朵内部
+      ctx.beginPath();
+      ctx.arc(side * r * 0.5, -r * 0.7, r * 0.13, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFDDBB';
+      ctx.fill();
+    }
+  }
+
+  drawGiftBalloon(ctx) {
+    const r = this.radius;
+    // 礼物盒子
+    const boxSize = r * 0.7;
+    ctx.fillStyle = this.color;
+    ctx.strokeStyle = this.darken(this.color, 0.2);
+    ctx.lineWidth = 2;
+    // 盒子
+    ctx.beginPath();
+    ctx.roundRect(-boxSize*0.6, -boxSize*0.1, boxSize*1.2, boxSize, 6);
+    ctx.fill();
+    ctx.stroke();
+    // 蝴蝶结
+    ctx.beginPath();
+    ctx.arc(0, -boxSize*0.15, boxSize*0.35, 0, Math.PI*2);
+    ctx.fillStyle = '#FFD700';
+    ctx.fill();
+    ctx.strokeStyle = '#E6A800';
+    ctx.stroke();
+    // 左右蝴蝶结耳朵
+    for (let side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(side*boxSize*0.25, -boxSize*0.35, boxSize*0.25, boxSize*0.15, side*0.3, 0, Math.PI*2);
+      ctx.fillStyle = '#FFD700';
+      ctx.fill();
+      ctx.strokeStyle = '#E6A800';
+      ctx.stroke();
+    }
+    // 丝带
+    ctx.beginPath();
+    ctx.moveTo(0, -boxSize*0.1);
+    ctx.lineTo(0, boxSize*0.9);
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    // 中央显示绑定单词的图案（与卡片统一，图片优先）
+    this.drawIcon(ctx, boxSize * 0.75, boxSize * 0.55, boxSize * 0.42);
+  }
+
+  drawBow(ctx, x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    // 中心结
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, Math.PI * 2);
+    ctx.fillStyle = this.bowColor;
+    ctx.fill();
+    // 左右蝴蝶结
+    for (let side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(side * 6, -2, 7, 4, side * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = this.bowColor;
+      ctx.fill();
+    }
+    // 下面飘带
+    ctx.beginPath();
+    ctx.moveTo(0, 3);
+    ctx.lineTo(-3, 14);
+    ctx.lineTo(3, 12);
+    ctx.closePath();
+    ctx.fillStyle = this.bowColor;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 3);
+    ctx.lineTo(3, 13);
+    ctx.lineTo(-3, 11);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  lighten(hex, amount) {
+    const num = parseInt(hex.replace('#',''), 16);
+    const r = Math.min(255, (num >> 16) + 60);
+    const g = Math.min(255, ((num >> 8) & 0xFF) + 60);
+    const b = Math.min(255, (num & 0xFF) + 60);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  darken(hex, amount) {
+    const num = parseInt(hex.replace('#',''), 16);
+    const r = Math.max(0, (num >> 16) - 30);
+    const g = Math.max(0, ((num >> 8) & 0xFF) - 30);
+    const b = Math.max(0, (num & 0xFF) - 30);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  contains(x, y) {
+    if (this.popped) return false;
+    const dx = x - this.x;
+    const dy = y - this.y;
+    // 椭圆形碰撞检测
+    const rx = this.radius * 0.85;
+    const ry = this.radius * 1.1;
+    return (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) < 1;
+  }
+}
+
+// ============ 粒子系统 ============
+function spawnPopParticles(x, y, color, count = 20) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 6 + 2;
+    const size = Math.random() * 6 + 2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      color: color === 'rainbow' ? BALLOON_COLORS[Math.floor(Math.random()*BALLOON_COLORS.length)] : color,
+      size,
+      life: Math.random() * 30 + 20,
+      maxLife: 50,
+      type: Math.random() > 0.5 ? 'circle' : 'star',
+    });
+  }
+  // 额外撒一些彩纸
+  for (let i = 0; i < 8; i++) {
+    confettiPieces.push({
+      x, y: y - 20,
+      w: Math.random() * 8 + 3,
+      h: Math.random() * 12 + 3,
+      color: BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)],
+      vx: (Math.random() - 0.5) * 5,
+      vy: (Math.random() - 0.5) * 4 - 2,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 10,
+      shape: 'rect',
+      opacity: 1,
+    });
+  }
+}
+
+function spawnSparkles(x, y, count = 15) {
+  for (let i = 0; i < count; i++) {
+    sparkles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 8,
+      vy: (Math.random() - 0.5) * 8 - 4,
+      life: Math.random() * 25 + 15,
+      maxLife: 40,
+      size: Math.random() * 3 + 1,
+      color: '#FFD700',
+    });
+  }
+}
+
+// ============ 儿童节场景：彩虹滑梯 + 积木 ============
+function drawPlayground(time) {
+  const pw = Math.min(W * 0.55, 260);
+  const cx = W / 2;
+  const cy = H - 80;
+  
+  ctx.save();
+  ctx.translate(cx, cy);
+  
+  // ===== 彩虹弧形 =====
+  const rainbowR = pw * 0.6;
+  const rainbowColors = ['#FF6B6B', '#FFB347', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6'];
+  for (let i = 0; i < rainbowColors.length; i++) {
+    ctx.beginPath();
+    ctx.arc(0, rainbowR * 0.3, rainbowR - i * 8, Math.PI, 0);
+    ctx.strokeStyle = rainbowColors[i];
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+  
+  // ===== 滑梯主体 =====
+  const slideX = -pw * 0.25;
+  const slideTopY = -pw * 0.55;
+  const slideBotY = pw * 0.05;
+  
+  // 滑梯支架/梯子
+  ctx.fillStyle = '#E8A87C';
+  ctx.strokeStyle = '#C4845C';
+  ctx.lineWidth = 3;
+  
+  // 左边支柱
+  ctx.fillStyle = '#E8A87C';
+  ctx.beginPath();
+  ctx.roundRect(slideX - 15, slideTopY - 5, 30, slideBotY - slideTopY + 10, 5);
+  ctx.fill();
+  ctx.stroke();
+  
+  // 右边支柱
+  const rightX = slideX + pw * 0.45;
+  ctx.beginPath();
+  ctx.roundRect(rightX - 12, slideBotY - 10, 24, 35, 5);
+  ctx.fill();
+  ctx.stroke();
+  
+  // 台阶横杆
+  for (let i = 0; i < 5; i++) {
+    const stepY = slideTopY + 10 + i * ((slideBotY - slideTopY - 20) / 4);
+    ctx.beginPath();
+    ctx.roundRect(slideX - 10, stepY, 20, 5, 2);
+    ctx.fillStyle = '#FFD93D';
+    ctx.fill();
+    ctx.strokeStyle = '#E6A800';
+    ctx.stroke();
+  }
+  
+  // 滑梯平台（顶部小房子）
+  ctx.fillStyle = '#FF6B6B';
+  ctx.strokeStyle = '#D94A4A';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(slideX - 25, slideTopY - 30, 50, 32, 6);
+  ctx.fill();
+  ctx.stroke();
+  
+  // 滑梯平台屋顶（三角形）
+  ctx.fillStyle = '#FFD93D';
+  ctx.strokeStyle = '#E6A800';
+  ctx.beginPath();
+  ctx.moveTo(slideX - 30, slideTopY - 30);
+  ctx.lineTo(slideX, slideTopY - 52);
+  ctx.lineTo(slideX + 30, slideTopY - 30);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  
+  // 滑梯滑道
+  ctx.strokeStyle = '#FF6FB7';
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(slideX + 20, slideTopY - 5);
+  ctx.quadraticCurveTo(slideX + pw * 0.35, slideTopY + 15, rightX, slideBotY);
+  ctx.stroke();
+  
+  // 滑道边缘高光
+  ctx.strokeStyle = '#FF9ED0';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(slideX + 22, slideTopY - 8);
+  ctx.quadraticCurveTo(slideX + pw * 0.35, slideTopY + 12, rightX + 2, slideBotY - 2);
+  ctx.stroke();
+  
+  // ===== 右边的积木塔 =====
+  const blockX = pw * 0.35;
+  const blockY = slideBotY - 5;
+  const blockSize = 22;
+  const blockColors = ['#4D96FF', '#FFD93D', '#6BCB77', '#FF6B6B', '#9B59B6', '#FF6FB7'];
+  
+  // 三块叠起来的积木
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 2; col++) {
+      const bx = blockX + col * (blockSize + 3);
+      const by = blockY + row * (blockSize + 3);
+      ctx.fillStyle = blockColors[(row * 2 + col) % blockColors.length];
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, blockSize, blockSize, 4);
+      ctx.fill();
+      ctx.stroke();
+      
+      // 积木上的字母
+      const letters = ['A', 'B', 'C', '1', '2', '⭐'];
+      ctx.fillStyle = '#FFF';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(letters[row * 2 + col], bx + blockSize/2, by + blockSize/2);
+    }
+  }
+  
+  // ===== 弹跳小球 =====
+  const ballX = -pw * 0.45;
+  const ballBounce = Math.abs(Math.sin(time * 0.003)) * 15;
+  const ballY = slideBotY - 15 - ballBounce;
+  
+  // 球阴影
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  ctx.beginPath();
+  ctx.ellipse(ballX, slideBotY + 5, 14 * (1 - ballBounce/15 * 0.5), 4, 0, 0, Math.PI*2);
+  ctx.fill();
+  
+  // 球体
+  const ballGrad = ctx.createRadialGradient(ballX-3, ballY-4, 3, ballX, ballY, 15);
+  ballGrad.addColorStop(0, '#FF9ED0');
+  ballGrad.addColorStop(0.5, '#FF6FB7');
+  ballGrad.addColorStop(1, '#D94A8A');
+  ctx.beginPath();
+  ctx.arc(ballX, ballY, 14, 0, Math.PI*2);
+  ctx.fillStyle = ballGrad;
+  ctx.fill();
+  
+  // 球上星星
+  ctx.fillStyle = '#FFF';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('⭐', ballX, ballY);
+  
+  ctx.restore();
+}
+
+// ============ 绘制函数 ============
+function drawBackground(time) {
+  // 渐变天空
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#87CEEB');
+  grad.addColorStop(0.3, '#B8E4F0');
+  grad.addColorStop(0.6, '#E8D5F5');
+  grad.addColorStop(1, '#FFF5E6');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+  
+  // 远处的云
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  for (let i = 0; i < 5; i++) {
+    const cx = (i * W * 0.25 + time * 0.02 * (i%2===0?1:-1)) % (W + 200) - 100;
+    const cy = H * 0.1 + i * 30;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 30, 0, Math.PI*2);
+    ctx.arc(cx+25, cy-10, 25, 0, Math.PI*2);
+    ctx.arc(cx+50, cy, 28, 0, Math.PI*2);
+    ctx.fill();
+  }
+  
+  // 星星
+  for (const star of stars) {
+    star.twinkle += star.speed;
+    const alpha = star.opacity + Math.sin(star.twinkle) * 0.3;
+    ctx.fillStyle = `rgba(255,255,200,${Math.max(0.1, alpha)})`;
+    ctx.beginPath();
+    // 画小十字星
+    const s = star.size;
+    ctx.moveTo(star.x - s, star.y);
+    ctx.lineTo(star.x + s, star.y);
+    ctx.moveTo(star.x, star.y - s);
+    ctx.lineTo(star.x, star.y + s);
+    ctx.strokeStyle = `rgba(255,255,200,${Math.max(0.1, alpha)})`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, s*0.5, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function drawConfetti() {
+  for (const c of confettiPieces) {
+    ctx.save();
+    ctx.globalAlpha = c.opacity;
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.rotation * Math.PI / 180);
+    ctx.fillStyle = c.color;
+    if (c.shape === 'circle') {
+      ctx.beginPath();
+      ctx.arc(0, 0, c.w/2, 0, Math.PI*2);
+      ctx.fill();
+    } else if (c.shape === 'heart') {
+      ctx.beginPath();
+      const s = c.w * 0.4;
+      ctx.moveTo(0, s);
+      ctx.bezierCurveTo(-s, 0, -s, -s, 0, -s);
+      ctx.bezierCurveTo(s, -s, s, 0, 0, s);
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.roundRect(-c.w/2, -c.h/2, c.w, c.h, 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    const alpha = p.life / p.maxLife;
+    ctx.globalAlpha = alpha;
+    if (p.type === 'star') {
+      drawTinyStar(ctx, p.x, p.y, p.size, p.color);
+    } else {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawSparkleParticles() {
+  for (const s of sparkles) {
+    const alpha = s.life / s.maxLife;
+    const size = s.size * (0.5 + Math.sin(s.life * 0.5) * 0.5);
+    ctx.fillStyle = `rgba(255,215,0,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, size, 0, Math.PI*2);
+    ctx.fill();
+    // 十字光芒
+    ctx.strokeStyle = `rgba(255,255,200,${alpha*0.5})`;
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(s.x - size*2, s.y);
+    ctx.lineTo(s.x + size*2, s.y);
+    ctx.moveTo(s.x, s.y - size*2);
+    ctx.lineTo(s.x, s.y + size*2);
+    ctx.stroke();
+  }
+}
+
+function drawTinyStar(ctx, x, y, size, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 72 - 90) * Math.PI / 180;
+    const ia = ((i * 72) + 36 - 90) * Math.PI / 180;
+    const ox = Math.cos(a) * size;
+    const oy = Math.sin(a) * size;
+    const ix = Math.cos(ia) * size * 0.4;
+    const iy = Math.sin(ia) * size * 0.4;
+    if (i === 0) ctx.moveTo(ox, oy);
+    else ctx.lineTo(ox, oy);
+    ctx.lineTo(ix, iy);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawFloatingTexts() {
+  for (const ft of floatingTexts) {
+    const alpha = ft.life / ft.maxLife;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = `bold ${ft.size}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = ft.color;
+    ctx.fillText(ft.text, ft.x, ft.y);
+    ctx.restore();
+  }
+}
+
+// ============ 场景绘制 ============
+function drawGrass() {
+  // 底部草地
+  ctx.fillStyle = '#90EE90';
+  ctx.beginPath();
+  ctx.moveTo(0, H - 50);
+  for (let x = 0; x < W; x += 15) {
+    ctx.quadraticCurveTo(x+5, H-65, x+10, H-50);
+    ctx.quadraticCurveTo(x+8, H-62, x+15, H-50);
+  }
+  ctx.lineTo(W, H);
+  ctx.lineTo(0, H);
+  ctx.closePath();
+  const grassGrad = ctx.createLinearGradient(0, H-70, 0, H);
+  grassGrad.addColorStop(0, '#7BC67E');
+  grassGrad.addColorStop(1, '#5DAE5F');
+  ctx.fillStyle = grassGrad;
+  ctx.fill();
+  
+  // 小花点缀
+  const flowerColors = ['#FF6B6B', '#FFD93D', '#FF6FB7', '#FFFFFF', '#FFB3BA'];
+  for (let i = 0; i < 8; i++) {
+    const fx = i * W / 7 + Math.sin(i*2.5) * 20;
+    const fy = H - 45 + Math.cos(i*3) * 8;
+    drawSmallFlower(fx, fy, flowerColors[i%flowerColors.length]);
+  }
+}
+
+function drawSmallFlower(x, y, color) {
+  ctx.fillStyle = color;
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 72) * Math.PI / 180;
+    ctx.beginPath();
+    ctx.arc(x + Math.cos(a)*5, y + Math.sin(a)*5, 3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.arc(x, y, 3, 0, Math.PI*2);
+  ctx.fillStyle = '#FFD700';
+  ctx.fill();
+}
+
+// ============ 游戏循环 ============
+function spawnBalloon() {
+  const rand = Math.random();
+  let type = 'normal';
+  if (rand < 0.05) type = 'star';
+  else if (rand < 0.10) type = 'rainbow';
+  else if (rand < 0.15) type = 'gift';
+  else if (rand < 0.22) type = 'bunny';
+  else if (rand < 0.28) type = 'bear';
+  
+  // 每个气球绑定一个单词（气球图案 = 该单词 emoji）
+  const balloon = new Balloon(type, getNextWord());
+  
+  // 避免与现有气球重叠
+  let attempts = 0;
+  while (attempts < 10) {
+    let overlapping = false;
+    for (const b of balloons) {
+      if (!b.popped) {
+        const dx = balloon.x - b.x;
+        const dy = balloon.y - b.y;
+        if (Math.sqrt(dx*dx + dy*dy) < balloon.radius + b.radius + 30) {
+          overlapping = true;
+          break;
+        }
+      }
+    }
+    if (!overlapping) break;
+    balloon.x = Math.random() * (W - 120) + 60;
+    attempts++;
+  }
+  
+  balloons.push(balloon);
+}
+
+function handlePop(balloon) {
+  if (balloon.popped) return;
+  
+  balloon.popped = true;
+  balloon.popTimer = 0;
+  
+  score += 1; // 每个气球 = 学一个单词
+  scoreDisplay.textContent = score;
+
+  // 音效
+  playPop(balloon.type);
+  
+  // 粒子效果
+  spawnPopParticles(balloon.x, balloon.y, balloon.color, balloon.points > 1 ? 30 : 20);
+  spawnSparkles(balloon.x, balloon.y, 12);
+  
+  // 浮动文字
+  floatingTexts.push({
+    x: balloon.x,
+    y: balloon.y,
+    text: `✨ 新单词!`,
+    size: 16,
+    color: balloon.type === 'star' ? '#FFD700' : '#4D96FF',
+    life: 0,
+    maxLife: 40,
+  });
+  
+  // 音效反馈（视觉）
+  createRipple(balloon.x, balloon.y);
+  
+  // 戳破气球后弹出该气球绑定的单词（图案与卡片一致）
+  showWord(balloon.word);
+  
+  // 加速
+  if (score % 5 === 0 && balloonInterval > 400) {
+    balloonInterval = Math.max(400, balloonInterval - 100);
+    difficultyLevel++;
+  }
+}
+
+function createRipple(x, y) {
+  // 视觉波纹
+  for (let i = 0; i < 3; i++) {
+    particles.push({
+      x, y,
+      vx: 0, vy: 0,
+      color: 'rgba(255,255,255,0.6)',
+      size: 5 + i * 8,
+      life: 20 - i * 5,
+      maxLife: 20,
+      type: 'ripple',
+    });
+  }
+}
+
+// 洗牌函数（Fisher-Yates）
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// 获取下一个单词（队列用完则重新洗牌）
+function getNextWord() {
+  if (wordQueue.length === 0) {
+    wordQueue = shuffle(THEMES[currentTheme].words);
+  }
+  return wordQueue.shift();
+}
+
+// ===== 单词发音（主方案：有道在线发音；降级：系统 TTS）=====
+// 发音口音：'us' 美式 / 'uk' 英式（默认美式，可切换并记住选择）
+const ACCENT_STORAGE_KEY = 'englishGame.currentAccent';
+function loadSavedAccent() {
+  try {
+    const saved = localStorage.getItem(ACCENT_STORAGE_KEY);
+    if (saved === 'uk' || saved === 'us') return saved; // 校验合法性
+  } catch (e) { /* 隐私模式等场景忽略 */ }
+  return 'us';
+}
+function saveAccent(accent) {
+  try { localStorage.setItem(ACCENT_STORAGE_KEY, accent); } catch (e) {}
+}
+
+let currentAccent = loadSavedAccent();
+let wordAudio = null;
+let audioFailed = false; // 在线音频是否失败过（失败后改用系统 TTS）
+let lastSpokenWord = ''; // 记录最近朗读的单词，供降级时使用
+
+// 口音切换：更新按钮外观
+function applyAccentUI() {
+  const isUK = currentAccent === 'uk';
+  accentFlag.textContent = isUK ? '🇬🇧' : '🇺🇸';
+  accentName.textContent = isUK ? '英式发音' : '美式发音';
+  accentEntryBtn.dataset.accent = currentAccent;
+}
+// 口音切换：切换状态并（若有卡片在展示）刷新音标 + 用新口音重读
+function toggleAccent() {
+  currentAccent = currentAccent === 'uk' ? 'us' : 'uk';
+  saveAccent(currentAccent);
+  applyAccentUI();
+  if (isCelebrating && currentWordObj) {
+    updatePhoneticDisplay();
+    speakWord(currentWordObj.word);
+  }
+}
+
+// 按当前口音刷新卡片上的音标（英式优先，缺失则回退美式）
+function updatePhoneticDisplay() {
+  if (!currentWordObj) return;
+  const useUK = currentAccent === 'uk' && currentWordObj.uk;
+  wordPhoneticEl.textContent = useUK ? currentWordObj.uk : currentWordObj.phonetic;
+}
+
+// 方案1：有道词典在线发音（移动端最可靠，不依赖系统语音包）
+// type=1 英式发音，type=2 美式发音
+function playWordAudio(word) {
+  try {
+    lastSpokenWord = word;
+    if (!wordAudio) {
+      wordAudio = new Audio();
+      wordAudio.addEventListener('error', () => {
+        audioFailed = true;
+        trySpeakNative(lastSpokenWord);
+      });
+    }
+    const type = currentAccent === 'uk' ? 1 : 2;
+    wordAudio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=${type}`;
+    const p = wordAudio.play();
+    if (p && p.catch) {
+      p.catch(() => {
+        audioFailed = true;
+        trySpeakNative(lastSpokenWord);
+      });
+    }
+  } catch (e) {
+    audioFailed = true;
+    trySpeakNative(lastSpokenWord);
+  }
+}
+
+// 方案2：系统语音合成（作为无网络/接口失效时的降级）
+function trySpeakNative(word) {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const utter = new SpeechSynthesisUtterance(word);
+    const prefix = currentAccent === 'uk' ? 'en-gb' : 'en-us';
+    utter.lang = currentAccent === 'uk' ? 'en-GB' : 'en-US';
+    utter.rate = 0.85;
+    utter.pitch = 1.1;
+    utter.volume = 1;
+    // 优先挑选与当前口音一致的语音包，找不到再退回任意英文语音
+    const norm = v => (v.lang || '').toLowerCase().replace('_', '-');
+    const voices = synth.getVoices();
+    const matchVoice = voices.find(v => norm(v).startsWith(prefix))
+      || voices.find(v => norm(v).startsWith('en'));
+    if (matchVoice) utter.voice = matchVoice;
+    // 保持引用防止被垃圾回收
+    window.__lastUtterance = utter;
+    setTimeout(() => synth.speak(utter), 60);
+  } catch (e) { /* 静默降级 */ }
+}
+
+// 朗读入口
+function speakWord(word) {
+  if (audioFailed) {
+    trySpeakNative(word);
+  } else {
+    playWordAudio(word);
+  }
+}
+
+// 弹出英语单词卡片
+function showWord(word) {
+  isCelebrating = true;
+  canDismiss = false;
+  
+  currentWordObj = word; // 记录当前单词对象，供"再读一遍"与音标切换使用
+  
+  // 图案：有图片用图片，否则用 emoji（iconfont 未就绪时会自动重试补上）
+  renderWordVisual(word);
+  wordEnglishEl.textContent = word.word;
+  updatePhoneticDisplay();
+  wordChineseEl.textContent = word.cn;
+  
+  // 自动朗读单词发音
+  speakWord(word.word);
+  
+  dismissHint.style.opacity = '0';
+  celebrationOverlay.classList.add('active');
+  
+  // 稍等片刻后才能点击关闭，同时显示提示
+  setTimeout(() => {
+    canDismiss = true;
+    dismissHint.style.opacity = '1';
+    dismissHint.style.transition = 'opacity 0.4s';
+  }, 1000);
+  
+  // 少量彩纸点缀
+  for (let i = 0; i < 20; i++) {
+    confettiPieces.push({
+      x: Math.random() * W,
+      y: -30,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 14 + 5,
+      color: BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)],
+      vx: (Math.random() - 0.5) * 3,
+      vy: Math.random() * 3 + 1,
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 6,
+      shape: Math.random() > 0.5 ? 'rect' : 'heart',
+      opacity: 1,
+    });
+  }
+}
+
+function dismissCelebration() {
+  if (!canDismiss) return;
+  celebrationOverlay.classList.remove('active');
+  isCelebrating = false;
+  canDismiss = false;
+  dismissHint.style.opacity = '0';
+}
+
+// ============ 事件处理 ============
+function getEventPos(e) {
+  if (e.touches && e.touches.length > 0) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+  }
+  return { x: e.clientX, y: e.clientY };
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  
+  // 在用户手势中主动激活音频（iOS/移动端浏览器必需）
+  getAudioCtx();
+  
+  // 庆祝模式中：点击关闭祝福语，不戳气球
+  if (isCelebrating) {
+    dismissCelebration();
+    return;
+  }
+  
+  const pos = getEventPos(e);
+  mouseX = pos.x;
+  mouseY = pos.y;
+  isTouching = true;
+  
+  // 检查是否点击了气球（从前往后检查，balloons[0] 最后绘制所以在最上层）
+  let hit = false;
+  for (let i = 0; i < balloons.length; i++) {
+    if (balloons[i].contains(pos.x, pos.y)) {
+      handlePop(balloons[i]);
+      hit = true;
+      break;
+    }
+  }
+  
+  // 如果没点到气球，也在点击位置显示一点反馈
+  if (!hit && pos.y > H * 0.3) {
+    spawnSparkles(pos.x, pos.y, 5);
+  }
+});
+
+canvas.addEventListener('pointermove', (e) => {
+  const pos = getEventPos(e);
+  mouseX = pos.x;
+  mouseY = pos.y;
+});
+
+canvas.addEventListener('pointerup', () => {
+  isTouching = false;
+});
+
+// 防止双击缩放和长按菜单；同时兼容不支持 pointer 事件的旧 iOS
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  getAudioCtx(); // 音频激活 fallback
+});
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// 点击遮罩层关闭祝福语
+celebrationOverlay.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  dismissCelebration();
+});
+
+// "再读一遍"按钮：重新朗读当前单词，不关闭卡片
+wordReplayBtn.addEventListener('pointerdown', (e) => {
+  e.stopPropagation();
+  if (currentWordObj) speakWord(currentWordObj.word);
+});
+wordReplayBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+// 切换英式 / 美式发音
+accentEntryBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+accentEntryBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleAccent();
+});
+// 初始化口音按钮外观（使用已恢复的口音）
+applyAccentUI();
+
+// ============ 主循环 ============
+let lastTime = 0;
+let spawnTimer = 0;
+
+function gameLoop(timestamp) {
+  if (!lastTime) lastTime = timestamp;
+  const dt = Math.min(timestamp - lastTime, 50);
+  lastTime = timestamp;
+  gameTime = timestamp;
+  
+  // 清除画布
+  ctx.clearRect(0, 0, W, H);
+  
+  // 背景
+  drawBackground(gameTime);
+  
+  // 草地
+  drawGrass();
+  
+  // 儿童节场景
+  drawPlayground(gameTime);
+  
+  // 更新和绘制彩纸
+  for (let i = confettiPieces.length - 1; i >= 0; i--) {
+    const c = confettiPieces[i];
+    c.x += c.vx;
+    c.y += c.vy;
+    c.rotation += c.rotSpeed;
+    c.opacity -= 0.003;
+    if (c.y > H + 50 || c.opacity <= 0) {
+      confettiPieces.splice(i, 1);
+    }
+  }
+  drawConfetti();
+  
+  // 生成新气球
+  spawnTimer += dt;
+  if (spawnTimer > balloonInterval) {
+    spawnTimer = 0;
+    if (balloons.filter(b => !b.popped).length < 8) {
+      spawnBalloon();
+    }
+  }
+  
+  // 定期背景彩纸
+  if (Math.random() < 0.02) spawnConfetti();
+  
+  // 更新和绘制气球
+  for (let i = balloons.length - 1; i >= 0; i--) {
+    const balloon = balloons[i];
+    const alive = balloon.update(gameTime);
+    if (!alive) {
+      balloons.splice(i, 1);
+    } else {
+      balloon.draw(ctx);
+    }
+  }
+  
+  // 更新和绘制粒子
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    if (p.type === 'ripple') {
+      p.size += 0.5;
+    } else {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.1; // 重力
+    }
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+  drawParticles();
+  
+  // 更新和绘制闪光
+  for (let i = sparkles.length - 1; i >= 0; i--) {
+    const s = sparkles[i];
+    s.x += s.vx;
+    s.y += s.vy;
+    s.vy += 0.05;
+    s.life--;
+    if (s.life <= 0) sparkles.splice(i, 1);
+  }
+  drawSparkleParticles();
+  
+  // 浮动文字
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    const ft = floatingTexts[i];
+    ft.y -= 1.5;
+    ft.life++;
+    if (ft.life >= ft.maxLife) floatingTexts.splice(i, 1);
+  }
+  drawFloatingTexts();
+  
+  // 隐藏提示
+  if (score > 3 && hintEl.style.opacity !== '0') {
+    hintEl.style.transition = 'opacity 0.5s';
+    hintEl.style.opacity = '0';
+  }
+  
+  requestAnimationFrame(gameLoop);
+}
+
+// ============ 初始气球 ============
+function init() {
+  preloadWordImages(currentTheme); // 预加载图案资源
+
+  // 初始放几个气球
+  for (let i = 0; i < 5; i++) {
+    const types = ['normal', 'normal', 'normal', 'bunny', 'bear'];
+    const balloon = new Balloon(types[i], getNextWord());
+    balloon.y = H * 0.5 + Math.random() * H * 0.3;
+    balloon.targetY = balloon.y;
+    balloons.push(balloon);
+  }
+  
+  // 开始游戏循环
+  requestAnimationFrame(gameLoop);
+}
+
+// 窗口大小变化时更新星星
+window.addEventListener('resize', () => {
+  resize();
+  createStars();
+});
+
+// 预加载语音列表（浏览器 getVoices 是异步的）
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+// ============ 启动！ ============
+init();
+
+console.log('🔤 英语单词气球 · 情绪感受篇 —— 戳破气球学单词吧！');
+</script>
+</body>
+</html>
