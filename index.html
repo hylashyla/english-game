@@ -374,7 +374,7 @@
 </div>
 
 <!-- iconfont symbol 图标源（异步加载，不阻塞游戏；加载失败自动回退 emoji） -->
-<script src="https://at.alicdn.com/t/c/font_5243893_877semdsolf.js" async
+<script src="https://at.alicdn.com/t/c/font_5243893_l167rwpaiul.js" async
         onload="window.__onIconfontReady && window.__onIconfontReady()"></script>
 
 <script>
@@ -506,7 +506,6 @@ const THEMES = {
     words: [
       { word: 'apple',      phonetic: '/ˈæp.əl/',           cn: '苹果',    emoji: '🍎', uk: '/ˈæpl/' },
       { word: 'banana',     phonetic: '/bəˈnæn.ə/',         cn: '香蕉',    emoji: '🍌', uk: '/bəˈnɑːnə/' },
-      { word: 'orange',     phonetic: '/ˈɔːr.ɪndʒ/',        cn: '橙子',    emoji: '🍊', uk: '/ˈɒrɪndʒ/' },
       { word: 'grapes',     phonetic: '/ɡreɪps/',           cn: '葡萄',    emoji: '🍇', uk: '/ɡreɪps/' },
       { word: 'strawberry', phonetic: '/ˈstrɔːˌber.i/',     cn: '草莓',    emoji: '🍓', uk: '/ˈstrɔːbəri/' },
       { word: 'watermelon', phonetic: '/ˈwɔː.t̬ɚˌmel.ən/',    cn: '西瓜',    emoji: '🍉', uk: '/ˈwɔːtəmelən/' },
@@ -518,22 +517,12 @@ const THEMES = {
       { word: 'cherry',     phonetic: '/ˈtʃer.i/',          cn: '樱桃',    emoji: '🍒', uk: '/ˈtʃeri/' },
       { word: 'blueberry',  phonetic: '/ˈbluːˌber.i/',      cn: '蓝莓',    emoji: '🫐', uk: '/ˈbluːbəri/' },
       { word: 'kiwi',       phonetic: '/ˈkiː.wiː/',         cn: '猕猴桃',  emoji: '🥝', uk: '/ˈkiːwiː/' },
-      { word: 'plum',       phonetic: '/plʌm/',             cn: '李子',    emoji: '🟣', uk: '/plʌm/' },
       { word: 'coconut',    phonetic: '/ˈkoʊ.kə.nʌt/',      cn: '椰子',    emoji: '🥥', uk: '/ˈkəʊkənʌt/' },
-      { word: 'papaya',     phonetic: '/pəˈpaɪ.ə/',         cn: '木瓜',    emoji: '🍈', uk: '/pəˈpaɪə/' },
-      { word: 'lychee',     phonetic: '/ˈlaɪ.tʃiː/',        cn: '荔枝',    emoji: '🍡', uk: '/ˈlaɪtʃiː/' },
-      { word: 'dragon fruit', phonetic: '/ˈdræɡ.ən fruːt/', cn: '火龙果',  emoji: '🐉', uk: '/ˈdræɡən fruːt/' },
+      { word: 'lychee',     phonetic: '/ˈlaɪ.tʃiː/',        cn: '荔枝',    emoji: '🍡', uk: '/ˈlaɪtʃiː/', iconId: 'icon-engamelizhi' },
+      { word: 'dragon fruit', phonetic: '/ˈdræɡ.ən fruːt/', cn: '火龙果',  emoji: '🐉', uk: '/ˈdræɡən fruːt/', iconId: 'icon-engamehuolongguo' },
       { word: 'tangerine',  phonetic: '/ˌtæn.dʒəˈriːn/',    cn: '橘子',    emoji: '🍊', uk: '/ˌtændʒəˈriːn/' },
       { word: 'avocado',    phonetic: '/ˌæv.əˈkɑː.doʊ/',    cn: '牛油果',  emoji: '🥑', uk: '/ˌævəˈkɑːdəʊ/' },
-      { word: 'pomegranate', phonetic: '/ˈpɑː.məˌɡræn.ɪt/', cn: '石榴',    emoji: '🍅', uk: '/ˈpɒmɪɡrænɪt/' },
-      { word: 'apricot',    phonetic: '/ˈeɪ.prɪ.kɑːt/',     cn: '杏',      emoji: '🟠', uk: '/ˈeɪprɪkɒt/' },
-      { word: 'fig',        phonetic: '/fɪɡ/',              cn: '无花果',  emoji: '🟤', uk: '/fɪɡ/' },
-      { word: 'raspberry',  phonetic: '/ˈræzˌber.i/',       cn: '覆盆子',  emoji: '🔴', uk: '/ˈrɑːzbəri/' },
-      { word: 'blackberry', phonetic: '/ˈblækˌber.i/',      cn: '黑莓',    emoji: '⚫', uk: '/ˈblækbəri/' },
-      { word: 'grapefruit', phonetic: '/ˈɡreɪp.fruːt/',     cn: '西柚',    emoji: '🍊', uk: '/ˈɡreɪpfruːt/' },
-      { word: 'mandarin',   phonetic: '/ˈmæn.dər.ɪn/',      cn: '柑橘',    emoji: '🍊', uk: '/ˈmændərɪn/' },
-      { word: 'passion fruit', phonetic: '/ˈpæʃ.ən fruːt/', cn: '百香果',  emoji: '🟡', uk: '/ˈpæʃən fruːt/' },
-      { word: 'durian',     phonetic: '/ˈdʊr.i.ən/',        cn: '榴莲',    emoji: '🌰', uk: '/ˈdʊəriən/' },
+      { word: 'jujube',     phonetic: '/ˈdʒuː.dʒuːb/',      cn: '红枣',    emoji: '🍒', uk: '/ˈdʒuːdʒuːb/', iconId: 'icon-engamehongzao' },
     ],
   },
   food: {
@@ -546,13 +535,9 @@ const THEMES = {
       { word: 'cake',    phonetic: '/keɪk/',     cn: '蛋糕',    emoji: '🍰', uk: '/keɪk/' },
       { word: 'rice',    phonetic: '/raɪs/',     cn: '米饭',    emoji: '🍚', uk: '/raɪs/' },
       { word: 'noodle',  phonetic: '/ˈnuːdl/',   cn: '面条',    emoji: '🍜', uk: '/ˈnuːdl/' },
-      { word: 'candy',   phonetic: '/ˈkændi/',   cn: '糖果',    emoji: '🍬', uk: '/ˈkændi/' },
       { word: 'cookie',  phonetic: '/ˈkʊki/',    cn: '饼干',    emoji: '🍪', uk: '/ˈkʊki/' },
-      { word: 'juice',   phonetic: '/dʒuːs/',    cn: '果汁',    emoji: '🧃', uk: '/dʒuːs/' },
       { word: 'meat',    phonetic: '/miːt/',     cn: '肉',      emoji: '🍖', uk: '/miːt/' },
-      { word: 'soup',    phonetic: '/suːp/',     cn: '汤',      emoji: '🍲', uk: '/suːp/' },
       { word: 'corn',    phonetic: '/kɔːrn/',    cn: '玉米',    emoji: '🌽', uk: '/kɔːn/' },
-      { word: 'carrot',  phonetic: '/ˈkærət/',   cn: '胡萝卜',  emoji: '🥕', uk: '/ˈkærət/' },
       { word: 'hamburger', phonetic: '/ˈhæm.bɝː.ɡɚ/', cn: '汉堡',    emoji: '🍔', uk: '/ˈhæmbɜːɡə/' },
       { word: 'pizza',     phonetic: '/ˈpiːt.sə/',    cn: '披萨',    emoji: '🍕', uk: '/ˈpiːtsə/' },
       { word: 'ice cream', phonetic: '/ˈaɪs kriːm/',  cn: '冰淇淋',  emoji: '🍦', uk: '/ˈaɪs kriːm/' },
