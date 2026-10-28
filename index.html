@@ -257,15 +257,20 @@
     line-height: 1;
     margin-bottom: 0.5vh;
   }
-  /* 卡片图案为图片时，按当前字号等比显示 */
-  .word-emoji img { width: 1em; height: 1em; display: block; margin: 0 auto; }
+  /* 卡片图案为图片时，按当前字号等比显示（实物图略放大一点更好认） */
+  .word-emoji img { width: 1.5em; height: 1.5em; display: block; margin: 0 auto; }
   .word-english {
     font-size: clamp(2rem, 7vw, 3.6rem);
     font-weight: 900;
     color: #FF6B6B;
     letter-spacing: 0.02em;
     text-shadow: 0 2px 0 rgba(0,0,0,0.05);
+    max-width: 100%;
+    overflow-wrap: anywhere; /* 长单词（如 dried sweet potato）不溢出卡片 */
+    line-height: 1.15;
   }
+  /* 词组类长单词自动缩小字号 */
+  .word-english.long { font-size: clamp(1.35rem, 4.8vw, 2.3rem); }
   .word-phonetic {
     font-size: clamp(1rem, 3vw, 1.5rem);
     color: #7A8CA6;
@@ -548,6 +553,25 @@ const THEMES = {
       { word: 'mooncake',  phonetic: '/ˈmuːn.keɪk/',  cn: '月饼',    emoji: '🥮', uk: '/ˈmuːnkeɪk/' },
       { word: 'zongzi',    phonetic: '/ˈzɒŋ.ziː/',    cn: '粽子',    emoji: '🍙', uk: '/ˈzɒŋziː/', img: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><ellipse cx='50' cy='82' rx='30' ry='7' fill='%23E5E8E8'/><path d='M50 20 L18 78 L82 78 Z' fill='%2367A548'/><path d='M50 20 L50 78 L82 78 Z' fill='%234F8C36'/><path d='M50 22 L45 6 L58 12 Z' fill='%2379B85A'/><path d='M34 78 Q40 48 50 22' stroke='%2385C068' stroke-width='2' fill='none'/><path d='M66 78 Q60 48 50 22' stroke='%2385C068' stroke-width='2' fill='none'/><path d='M32 68 L64 50' stroke='%23F3E3C3' stroke-width='5'/><path d='M34 52 L66 70' stroke='%23F3E3C3' stroke-width='5'/></svg>` },
       { word: 'steamed bun', phonetic: '/ˌstiːmd ˈbʌn/', cn: '包子', emoji: '🥟', uk: '/ˌstiːmd ˈbʌn/', img: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='70' width='80' height='8' rx='4' fill='%23D9AE6B'/><rect x='14' y='78' width='72' height='11' rx='5' fill='%23E8C48A'/><ellipse cx='50' cy='52' rx='27' ry='22' fill='%23FDFEFE' stroke='%23D5DBDB' stroke-width='2'/><path d='M50 32 Q40 44 37 54' stroke='%23D5DBDB' stroke-width='2' fill='none'/><path d='M50 32 Q45 45 44 56' stroke='%23D5DBDB' stroke-width='2' fill='none'/><path d='M50 32 Q55 45 56 56' stroke='%23D5DBDB' stroke-width='2' fill='none'/><path d='M50 32 Q60 44 63 54' stroke='%23D5DBDB' stroke-width='2' fill='none'/><circle cx='50' cy='32' r='6' fill='%23F2F4F4' stroke='%23D5DBDB' stroke-width='2'/></svg>` },
+    ],
+  },
+  snack: {
+    name: '零食篇',
+    emoji: '🍭',
+    words: [
+      // 以下 img 为本地实物图（assets/snack/*.png，白底方形），图片未就绪时回退 emoji
+      { word: 'cheese stick', phonetic: '/tʃiːz stɪk/',        cn: '奶酪棒',  emoji: '🧀', uk: '/tʃiːz stɪk/', img: 'assets/snack/cheese-stick.png' },
+      { word: 'lollipop',     phonetic: '/ˈlɑːlipɑːp/',         cn: '棒棒糖',  emoji: '🍭', uk: '/ˈlɒlipɒp/' },
+      { word: 'dried blueberry', phonetic: '/draɪd ˈbluːberi/', cn: '蓝莓干',  emoji: '🫐', uk: '/draɪd ˈbluːbəri/', img: 'assets/snack/blueberry.png' },
+      { word: 'cod sausage',  phonetic: '/kɑːd ˈsɔːsɪdʒ/',      cn: '鳕鱼肠',  emoji: '🌭', uk: '/kɒd ˈsɒsɪdʒ/', img: 'assets/snack/cod-sausage.png' },
+      { word: 'biscuit',      phonetic: '/ˈbɪskɪt/',            cn: '饼干',    emoji: '🍪', uk: '/ˈbɪskɪt/', img: 'assets/snack/biscuit.png' },
+      { word: 'beef jerky',   phonetic: '/biːf ˈdʒɜːrki/',      cn: '牛肉干',  emoji: '🥩', uk: '/biːf ˈdʒɜːki/', img: 'assets/snack/beef-jerky.png' },
+      { word: 'dried apple',  phonetic: '/draɪd ˈæpl/',         cn: '苹果干',  emoji: '🍎', uk: '/draɪd ˈæpl/', img: 'assets/snack/dried-apple.png' },
+      { word: 'dried sweet potato', phonetic: '/draɪd swiːt pəˈteɪtoʊ/', cn: '红薯干', emoji: '🍠', uk: '/draɪd swiːt pəˈteɪtəʊ/', img: 'assets/snack/sweet-potato.png' },
+      { word: 'quail egg',    phonetic: '/kweɪl eɡ/',           cn: '鹌鹑蛋',  emoji: '🥚', uk: '/kweɪl eɡ/', img: 'assets/snack/quail-egg.png' },
+      { word: 'dried prune',  phonetic: '/draɪd pruːn/',        cn: '西梅干',  emoji: '🫐', uk: '/draɪd pruːn/', img: 'assets/snack/prune.png' },
+      { word: 'seaweed',      phonetic: '/ˈsiːwiːd/',           cn: '海苔',    emoji: '🌿', uk: '/ˈsiːwiːd/', img: 'assets/snack/seaweed.png' },
+      { word: 'chocolate',    phonetic: '/ˈtʃɑːklət/',          cn: '巧克力',  emoji: '🍫', uk: '/ˈtʃɒklət/' },
     ],
   },
   number: {
@@ -2103,6 +2127,8 @@ function showWord(word) {
   // 图案：有图片用图片，否则用 emoji（iconfont 未就绪时会自动重试补上）
   renderWordVisual(word);
   wordEnglishEl.textContent = word.word;
+  // 词组/长单词（如 dried sweet potato）自动缩小字号，避免溢出卡片
+  wordEnglishEl.classList.toggle('long', word.word.length > 9);
   updatePhoneticDisplay();
   wordChineseEl.textContent = word.cn;
   
